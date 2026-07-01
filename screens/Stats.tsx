@@ -169,7 +169,7 @@ function langBar(count: number, max: number, filledColor: string, bgColor: strin
   return t`${fg(filledColor)("█".repeat(filled))}${fg(bgColor)("░".repeat(empty))}`
 }
 
-export function StatsScreen() {
+export function StatsScreen({ width }: { width: number }) {
   const theme = useTheme()
   const stats = useGitHubStats()
 
@@ -190,7 +190,7 @@ export function StatsScreen() {
       <text content={t`${bold(fg(theme.accent)("stats"))} ${dim("// github profile & activity")}`} />
       <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
 
-      <box style={{ flexDirection: "row", gap: 2, flexGrow: 1 }}>
+      <box style={{ flexDirection: width < 75 ? "column" : "row", gap: width < 75 ? 0 : 2, flexGrow: 1 }}>
         {/* Left Card: Profile Overview */}
         <box
           title=" 👤 GitHub Profile "

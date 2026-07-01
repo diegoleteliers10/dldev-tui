@@ -1,7 +1,7 @@
 import { t, bold, fg, dim, underline } from "@opentui/core"
 import { useTheme, PROFILE, REPOS } from "../data"
 
-export function HomeScreen() {
+export function HomeScreen({ width }: { width: number }) {
   const theme = useTheme()
   const topRepos = REPOS.filter((r) => r.stars > 0 || r.highlight).slice(0, 5)
 
@@ -11,7 +11,7 @@ export function HomeScreen() {
         <text content={t`${bold(fg(theme.accent)("diego letelier"))} ${dim("// building tools that solve real problems")}`} />
       </box>
 
-      <box style={{ flexDirection: "row", gap: 2, flexGrow: 1 }}>
+      <box style={{ flexDirection: width < 75 ? "column" : "row", gap: width < 75 ? 0 : 2, flexGrow: 1 }}>
         {/* Info Box */}
         <box
           title=" Profile "

@@ -1,8 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useKeyboard } from "@opentui/react"
 import { t, bold, fg, dim } from "@opentui/core"
-import { readFileSync } from "fs"
-import { join } from "path"
 import { Sidebar } from "./Sidebar"
 import { HomeScreen } from "./screens/Home"
 import { ProjectsScreen } from "./screens/Projects"
@@ -17,37 +15,47 @@ import { UsesScreen } from "./screens/Uses"
 import { PomodoroScreen } from "./screens/Pomodoro"
 import { THEMES, ThemeContext, type ThemeName, type Screen } from "./data"
 
-const SPLASH_ART = [
-  "UUUUUJUJJJJCCCCCCCLLLJ~;\"\"\"\"::>](|||1]~!l;;;II!i<++_+!I!>~-Ymmmwmmmmmm",
-  "UUJJJJJCCJCCCCCLCCLLCl:\"\",,,l1trjxnunnr/(1-}}[}]+<i<<<il!i~_Jwmmwwwwww",
-  "JJJJCCCLCCCCCJJUYXXz_\",,,,:i}/jxnucXXXXzXzXzcczzvx/]?->>i>~?xZwwwwwwww",
-  "JCCCCCCJJJUYzzcuunx(,\",\"\":>](fxnnvzYUUJJJLCLL00OOOQJcr|-+!!+?nwwwqwqqw",
-  "CCCCCJUUYXzvunxxxxfi\",,\":l_1/jrxnvzYUCCQQ0QQ0O0ZZmmZZQCv|~><<_Zqqqqqqq",
-  "CCJJUYXzzvnxxxxrrx-;\"\"\"\",>?1/jxnucXUCQ0OO0Q0QQOZmwwmZOO0U];I<<jqqqpppp",
-  "JUUUYXzcuxrrrrrrrr)\":\"^\":+[)|truuvXXJL0ZO0QQQOmwmwwwmZmOL1i<~!|wpppppp",
-  "JUUYXzcurrrjrjrrjjfi,\"^^I__?][-++?|fnzULLLQQQOmmmmmwwmZZL[i<><Zppdpddd",
-  "JUYXccvxrjjjjjjffft1l;\"\"~]-[)/rrf(?+?}tczvzXcuuuxrXYUXL0Ui!-_]ppdddddd",
-  "JYXzcvnrjffffftttt\\-i;,\"-?_~I>>I_j~--~)zULJznjt/juvvYUCLnli-?0ddddddbd",
-  "JYXccvxjfftttt//\\\\(+i:,;[{1[]1\\-]YX)[-)X0mOJX{|I,l}}uJOmf>>-{ddbdbbbbb",
-  "JUXccvxffttt///\\||(+!i;~{(xvvnvcccvt()\\Y0ZO00CvvuYUQQ0mwx_l-Cbbbbbbbkb",
-  "CUXzcvnjt///\\||||(1~~Il[1/uYCJUUXzj|1(xUOZOZZOwmwmZmwwwwj){Ykkkkkkkkkk",
-  "JYzzcvnf//\\\\\\\\\\((()i<+i}1/nzUJCUUz|]{(cQOZOQOwmOQwqpqpqqffudkkkkkkkkkk",
-  "JJXzccujt/\\||||())1}?_~]{|xvYJLLz{]))1jCZZZZOZmwqpppppppcccbkkkkkhhhkk",
-  "CJYzcvnf/||||(()1)){?<>+}1fnXUJCc\\}->?}/XCXcQZZmpdpppqpqZQCbkkhhhhhhhh",
-  "CJXccur/\\|(|(())111{}-:I[[|juzzzur//tuXUQOLQZwwqqqqqqppmmwwkhhhhhhhhhh",
-  "CXXccuf\\\\||(()1111{{}}-![?}(tff|]}(txzYYJQQQC0OZmwwmqppqkhhhhhhahahhaa",
-  "JXzzcuf\\(((()1111{{}[[[-]--[|\\\\+l+__1)fxxxYQLYvuzCmqwwqbhhhhaaaaaaaaaa",
-  "CYzzcuj\\((()111{{}}}[[[?--+?(jcf()trvvYzCQ0ZmmZQUCZwqqdhahaaaaoaaaaaao",
-  "LYXzzvn/|())111{{}}[[]]??~++_1|tffjuYUYYCQZwwqqwZ0mwqpaaaaaoaaoaoooooo",
-  "QCYzccuj())111{}}[[]]]]??-~<><]}\\fuYL00OwwqqqwwZCQmmZhaaaaoooooooooooo",
-  "LLJXzzcuf()1{{}}[[[]]???--?>>i>-{/vcCQZwqddpqwmLzL0mpaaooooooooooooooo",
-  "QQLUXzccuj({{}}}[[]]]??----_+~!Ii}|xUCCCQZZQCLuuCwqppooooooooooooo****",
-  "Q0QLJzzcvut){}[[]]]]?----__-~<~>;l<{xujt/jcr\\v0wdbbppoooooooo**o*o****",
-  "000QCYzzcvur\\1[[]]??-?___++-_-_~~<<__?}1/uzQqdbbbbbppaoooo**o******#*#",
-  "00000QCUYzcvx\\[]??___>l><!_-])([?[/nXJQOZwpdpbbbbbbdpzkfjZ*****#*#####",
-  "OOOOOO0QYvt{]]--+>i,;!|!>+---(f\\)(fvUQZZwqpdbkkkkkbdpdMo~l)QL#########"
+const FULL_SPLASH_ART = [
+  "                                                                      ",
+  "                                                                      ",
+  "                                                                      ",
+  "                                                                      ",
+  "                                       $                              ",
+  "                            {~?-_+<>i>~~_[[_                          ",
+  "                          >>>l;;,,;;:;li+_+~-]                        ",
+  "                        ~i;:,:^^^^^\"\",:;!>>~+<--                      ",
+  "                      ll:\"\",;>??+l;::;I!~>i!II~__                     ",
+  "                     j:\"\",,?tjxnnr\\{-]?]_+~<>!!~~+                    ",
+  "                    ;:,,,I-\\rnuXXYYYUUUJCYn)]~!i_?                    ",
+  "                    ;\",\":+)fxnvXUJLQQL00ZmZ0Cn{>><_                   ",
+  "                   ;l,\",;?(fxncYCQOOQQQ0mwmZOOJ<;i~x                  ",
+  "                    ,\"^\"i-?{)\\jvXJQ0QQOmwwwmZZC?i~<                   ",
+  "                    lI\",_-}\\xx|+_)vvcXvczvYUUOnii_+                   ",
+  "                    ii,l]_!i!:c[__cL0Xj{]tvJLOf!+-                    ",
+  "                    !lI~1jxrxvcn))cOO0Cx/jzvCmui~-                    ",
+  "                   li>l](nYJUYc/{\\YOOZZwmmmwwwx)]                     ",
+  "                    <++?)xXUCC/1(fQqm0Zwmqqpqqzn$                     ",
+  "                     +>_}tvUCYt~<<(ztt0ZwpppwpOQ                      ",
+  "                      ;>])fnvr\\/ruzCQ0ZwwqwqpqJb                      ",
+  "                       _??}|1~-{txzXJLUXXQmqqw                        ",
+  "                        -+]/nt|rvzXLOmwwOLmwqw                        ",
+  "                        <+<_}|jcCQC0ZwwwZ0mmZ                         ",
+  "                         _<i>[/cU0mqddwwYJQqk                         ",
+  "                         _+~>;+(zUcYUYvr0pppL                         ",
+  "                         ?-_~~i>+-?1rLqbbbdpq                         ",
+  "                     \"`il>?1(]{jYLZmpdbbbbbpLU+~                      ",
+  "                 I^:-1j{?-_}fftcCOwqdbkhkbbd#M\\!l;i                   ",
+  "           ,:\"\"\"^^^:OQcj/?-]|xuYQwqdbbbbbbdMM{;;;,,,l+!>              ",
+  "       \"\"\"^^\"\"\"\"^^^^!zXuu/)){rYULOwppdbbdab];:::^\",,:::;!+{           ",
+  "     ,\"^^^^^^\"^^^^\"^^}uXzxjx\\|J0QOZZwpQC1::;;:,`^,,:::,,,,,\",:;;I>    ",
+  "   :\"^^^^^^^^^^^^^\"\"^^^;_fucu/UwQn1~l::;::::,\"^^\":::\"^\",,\"^^\",,:,\",;I-",
+  "  ,\"^^^\"\"^^\"\"^^^^\"\"\"\"\"\"^\"\"\"\",,:,,,,,,::::,,,,^`^,;:\"`\"\"\"\"^^^,::\"^\",:::",
+  "\"^\"^^^\"\"^^\"\"\"\"^^^^\"^^\"\"\"\"\"\"\"\",\"\"\"\",,:,,\",,,,\"``\";:\"^^\"\"\"^`^\"::^`^\"::,,",
+  "`^\"^\"\"\"\"\"^\"\"\"\"^^\"\"\"^\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,:,,,,^`^:;\"^^\"\",^``^:;^`^\",:,\",",
+  "^\"\"^\"\"\"\"^^\"\"\"\"^^\"\"\"\"\"\"\"\"\",,,,\"\",,::::,:,,,,\"``\":;\"^^\",\"^'`,:^`^\"\"::\"\"\"",
+  "\"\"^^\"\"\"\"^^\"\"\"\"\"\"\"\"\"\"\"\"\",,\"\"\"\",,,,:,,,,,,,,,^`^,;:^^\",\"\"^`^:^`\"^^,::\"``",
+  "\"\"`^\"\"\"\"^\"\"\"\"\"\"\"\",,\",,,\"\",\",,,,,::,,,,,,,,\"``^,:;\"^\",,\"``\":`\"\"'\",:,`'`"
 ]
-
 
 const BIG_D = ["██████ ", "██   ██", "██   ██", "██   ██", "██████ "]
 const BIG_I = ["██████ ", "  ██   ", "  ██   ", "  ██   ", "██████ "]
@@ -63,8 +71,21 @@ export default function App() {
   const [phase, setPhase] = useState<"welcome" | "portfolio" | "trivia">("welcome")
   const [screen, setScreen] = useState<Screen>("home")
   const [themeName, setThemeName] = useState<ThemeName>("One Dark")
+  const [terminalHeight, setTerminalHeight] = useState(process.stdout.rows || 40)
+  const [terminalWidth, setTerminalWidth] = useState(process.stdout.columns || 80)
 
   const theme = THEMES[themeName]
+
+  useEffect(() => {
+    const handleResize = () => {
+      setTerminalHeight(process.stdout.rows || 40)
+      setTerminalWidth(process.stdout.columns || 80)
+    }
+    process.stdout.on("resize", handleResize)
+    return () => {
+      process.stdout.off("resize", handleResize)
+    }
+  }, [])
 
   useKeyboard((key) => {
     if (key.name === "escape" && phase !== "trivia") {
@@ -101,17 +122,28 @@ export default function App() {
     }
   })
 
+  // Show the user's manual me.txt directly (no dynamic cropping)
+  // On small terminals, slice off the first 4 empty lines to prevent overflow
+  const isSmallHeight = terminalHeight < 48
+  const slicedArt = isSmallHeight ? FULL_SPLASH_ART.slice(4) : FULL_SPLASH_ART
+
+  const isSmallTitle = terminalHeight < 46
+
   return (
     <ThemeContext.Provider value={theme}>
       {phase === "welcome" && (
         <box style={{ flexDirection: "column", width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}>
-          {SPLASH_ART.map((line, i) => (
+          {slicedArt.map((line, i) => (
             <text key={i} content={t`${line}`} />
           ))}
           <text content={t``} />
-          {BIG_NAME.map((line, i) => (
-            <text key={`name-${i}`} content={t`${fg(theme.accent)(line)}`} />
-          ))}
+          {isSmallTitle ? (
+            <text content={t`${bold(fg(theme.accent)("D I E G O"))}`} />
+          ) : (
+            BIG_NAME.map((line, i) => (
+              <text key={`name-${i}`} content={t`${fg(theme.accent)(line)}`} />
+            ))
+          )}
           <text content={t``} />
           <box style={{ borderStyle: "rounded", borderColor: theme.border, padding: 1, flexDirection: "column", width: 54, alignItems: "center" }}>
             <text content={t`Press ${bold(fg(theme.accent)("[ENTER]"))} to view Portfolio`} />
@@ -130,11 +162,11 @@ export default function App() {
         <box style={{ flexDirection: "row", width: "100%", height: "100%" }}>
           <Sidebar active={screen} onNavigate={setScreen} />
           <box style={{ flexGrow: 1, flexDirection: "column", padding: 1, borderStyle: "rounded", borderColor: theme.border, marginLeft: 1 }}>
-            {screen === "home" && <HomeScreen />}
+            {screen === "home" && <HomeScreen width={terminalWidth} />}
             {screen === "projects" && <ProjectsScreen />}
-            {screen === "about" && <AboutScreen />}
+            {screen === "about" && <AboutScreen width={terminalWidth} />}
             {screen === "contact" && <ContactScreen />}
-            {screen === "stats" && <StatsScreen />}
+            {screen === "stats" && <StatsScreen width={terminalWidth} />}
             {screen === "heatmap" && <HeatmapScreen />}
             {screen === "now" && <NowScreen />}
             {screen === "uses" && <UsesScreen />}

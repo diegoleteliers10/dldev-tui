@@ -6,7 +6,7 @@ function skillBar(level: number, theme: Theme, width: number = 18): string {
   return "\u2588".repeat(filled) + "\u2591".repeat(width - filled)
 }
 
-export function AboutScreen() {
+export function AboutScreen({ width }: { width: number }) {
   const theme = useTheme()
   const sortedSkills = Object.entries(SKILLS).sort((a, b) => b[1] - a[1])
 
@@ -32,14 +32,14 @@ export function AboutScreen() {
           <text content={t`${fg(theme.muted)(PROFILE.role)}`} />
         </box>
         <text content={t`${fg(theme.fg)(PROFILE.bio)}`} />
-        <box style={{ flexDirection: "row", gap: 4, marginTop: 1 }}>
+        <box style={{ flexDirection: width < 75 ? "column" : "row", gap: width < 75 ? 0 : 4, marginTop: 1 }}>
           <text content={t`${fg(theme.muted)("location:")} ${fg(theme.fg)(PROFILE.location)}`} />
           <text content={t`${fg(theme.muted)("website:")}  ${underline(fg(theme.link)(PROFILE.website))}`} />
         </box>
       </box>
 
       {/* Skills and Experience in Columns */}
-      <box style={{ flexDirection: "row", gap: 2, flexGrow: 1, marginTop: 1 }}>
+      <box style={{ flexDirection: width < 75 ? "column" : "row", gap: width < 75 ? 0 : 2, flexGrow: 1, marginTop: 1 }}>
         
         {/* Skills Column */}
         <box

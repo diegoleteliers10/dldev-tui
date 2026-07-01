@@ -1,3 +1,5 @@
+import { useState } from "react"
+import { useKeyboard } from "@opentui/react"
 import { t, bold, fg, dim } from "@opentui/core"
 import { useTheme } from "../data"
 
@@ -25,8 +27,26 @@ const THINKING = [
   "The intersection of community building and open source",
 ]
 
+const CATEGORIES = [
+  { id: "building", label: "Building", icon: "🔨" },
+  { id: "learning", label: "Learning", icon: "📚" },
+  { id: "listening", label: "Listening", icon: "🎧" },
+  { id: "thinking", label: "Thinking About", icon: "💭" },
+]
+
 export function NowScreen() {
   const theme = useTheme()
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  useKeyboard((key) => {
+    if (key.name === "down" || key.name === "j") {
+      setActiveIndex((prev) => (prev + 1) % CATEGORIES.length)
+    } else if (key.name === "up" || key.name === "k") {
+      setActiveIndex((prev) => (prev - 1 + CATEGORIES.length) % CATEGORIES.length)
+    }
+  })
+
+  const activeCategory = CATEGORIES[activeIndex]!
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
@@ -36,89 +56,86 @@ export function NowScreen() {
       </box>
       <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
 
-      {/* Three columns */}
+      {/* Columns: Left Category List, Right Category Details */}
       <box style={{ flexDirection: "row", gap: 2, flexGrow: 1 }}>
+        
+        {/* Left: Categories Menu */}
         <box
-          title=" 🔨 Building "
+          title=" Section "
           titleColor={theme.accent}
           style={{
+            width: 22,
             flexDirection: "column",
             gap: 1,
-            flexGrow: 1,
             padding: 1,
             borderStyle: "rounded",
             borderColor: theme.border,
           }}
         >
-          {BUILDING.map((item) => (
-            <box key={item.name} style={{ flexDirection: "column" }}>
-              <text content={t`  ${bold(fg(theme.link)(item.name))}`} />
-              <text content={t`  ${fg(theme.muted)(item.desc)}`} />
-            </box>
-          ))}
+          {CATEGORIES.map((cat, idx) => {
+            const isActive = idx === activeIndex
+            return (
+              <text
+                key={cat.id}
+                content={
+                  isActive
+                    ? t`${fg(theme.accent)("▶")} ${bold(fg(theme.fg)(cat.label))}`
+                    : t`  ${fg(theme.muted)(cat.label)}`
+                }
+              />
+            )
+          })}
         </box>
 
+        {/* Right: Selected Category Details */}
         <box
-          title=" 📚 Learning "
+          title={` ${activeCategory.icon} ${activeCategory.label} `}
           titleColor={theme.accent}
           style={{
+            flexGrow: 1,
             flexDirection: "column",
             gap: 1,
-            flexGrow: 1,
             padding: 1,
             borderStyle: "rounded",
             borderColor: theme.border,
           }}
         >
-          {LEARNING.map((item) => (
-            <box key={item.name} style={{ flexDirection: "column" }}>
-              <text content={t`  ${bold(fg(theme.success)(item.name))}`} />
-              <text content={t`  ${fg(theme.muted)(item.desc)}`} />
-            </box>
-          ))}
-        </box>
+          {activeCategory.id === "building" &&
+            BUILDING.map((item) => (
+              <box key={item.name} style={{ flexDirection: "column" }}>
+                <text content={t`  ${bold(fg(theme.link)(item.name))}`} />
+                <text content={t`    ${fg(theme.muted)(item.desc)}`} />
+              </box>
+            ))}
 
-        <box
-          title=" 🎧 Listening "
-          titleColor={theme.accent}
-          style={{
-            flexDirection: "column",
-            gap: 1,
-            flexGrow: 1,
-            padding: 1,
-            borderStyle: "rounded",
-            borderColor: theme.border,
-          }}
-        >
-          {LISTENING.map((item) => (
-            <box key={item.name} style={{ flexDirection: "column" }}>
-              <text content={t`  ${bold(fg(theme.warn)(item.name))}`} />
-              <text content={t`  ${fg(theme.muted)(item.desc)}`} />
-            </box>
-          ))}
-        </box>
-      </box>
+          {activeCategory.id === "learning" &&
+            LEARNING.map((item) => (
+              <box key={item.name} style={{ flexDirection: "column" }}>
+                <text content={t`  ${bold(fg(theme.success)(item.name))}`} />
+                <text content={t`    ${fg(theme.muted)(item.desc)}`} />
+              </box>
+            ))}
 
-      {/* Thinking section */}
-      <box
-        title=" 💭 Thinking About "
-        titleColor={theme.accent}
-        style={{
-          flexDirection: "column",
-          gap: 1,
-          padding: 1,
-          borderStyle: "rounded",
-          borderColor: theme.border,
-          marginTop: 1,
-        }}
-      >
-        {THINKING.map((thought, i) => (
-          <text key={i} content={t`  ${fg(theme.accent)("→")} ${fg(theme.fg)(thought)}`} />
-        ))}
+          {activeCategory.id === "listening" &&
+            LISTENING.map((item) => (
+              <box key={item.name} style={{ flexDirection: "column" }}>
+                <text content={t`  ${bold(fg(theme.warn)(item.name))}`} />
+                <text content={t`    ${fg(theme.muted)(item.desc)}`} />
+              </box>
+            ))}
+
+          {activeCategory.id === "thinking" &&
+            THINKING.map((item, idx) => (
+              <text key={idx} content={t`  ${fg(theme.accent)("→")} ${fg(theme.fg)(item)}`} />
+            ))}
+        </box>
       </box>
 
       <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
-      <text content={t`  ${dim("1-8 switch")}  ${dim("t")} ${fg(theme.muted)("theme")}  ${dim("q")} ${fg(theme.muted)("back")}`} />
+      <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <text content={t`  ${dim("1-9 switch")}  ${dim("t")} ${fg(theme.muted)("theme")}  ${dim("q")} ${fg(theme.muted)("back")}`} />
+        <text content={t`${dim("Use ↑/↓ or J/K to browse")}  `} />
+      </box>
     </box>
   )
 }
