@@ -1,6 +1,7 @@
 {
   "name": "dldev",
   "module": "index.tsx",
+  "version": "1.0.0",
   "type": "module",
   "private": false,
   "bin": {
@@ -26,6 +27,5 @@
     "@opentui/core": "^0.4.2",
     "@opentui/react": "^0.4.2",
     "react": "^19.2.6"
-  },
-  "version": ""
+  }
 }
