@@ -5,15 +5,16 @@
   "type": "module",
   "private": false,
   "bin": {
-    "dlsdev": "./dist/index.js"
+    "dlsdev": "./bin.cjs"
   },
   "files": [
-    "dist"
+    "dist",
+    "bin.cjs"
   ],
   "scripts": {
     "dev": "bun run --watch index.tsx",
     "tui": "bun run index.tsx",
-    "build": "bun build ./index.tsx --outfile=./dist/index.js --target=node --external=@opentui/core --external=@opentui/react --external=react && echo '#!/usr/bin/env node' | cat - dist/index.js > temp && mv temp dist/index.js && chmod +x dist/index.js",
+    "build": "bun build ./index.tsx --outfile=./dist/index.js --target=node --external=@opentui/core --external=@opentui/core-darwin-x64 --external=@opentui/core-darwin-arm64 --external=@opentui/core-linux-x64 --external=@opentui/core-linux-arm64 --external=@opentui/core-win32-x64 --external=@opentui/core-win32-arm64 --external=@opentui/core-linux-arm64-musl",
     "typecheck": "bunx tsc --noEmit"
   },
   "devDependencies": {
