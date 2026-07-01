@@ -1,11 +1,11 @@
 {
-  "name": "dldev",
+  "name": "dlsdev",
   "module": "index.tsx",
   "version": "1.0.0",
   "type": "module",
   "private": false,
   "bin": {
-    "dldev": "dist/index.js"
+    "dlsdev": "./dist/index.js"
   },
   "files": [
     "dist"
