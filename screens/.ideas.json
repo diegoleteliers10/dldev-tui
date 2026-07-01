@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1",
+    "text": "CLI toolkit for Chilean devs",
+    "column": "wip"
+  },
+  {
+    "id": "2",
+    "text": "Open banking dashboard",
+    "column": "wip"
+  },
+  {
+    "id": "3",
+    "text": "Llegapo v2 with real-time map",
+    "column": "wip"
+  },
+  {
+    "id": "4",
+    "text": "This TUI portfolio",
+    "column": "done"
+  }
+]
