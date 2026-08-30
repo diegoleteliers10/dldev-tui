@@ -1,31 +1,34 @@
 import { t, bold, fg, dim } from "@opentui/core"
 import { useTheme, type Screen } from "./data"
 
-const ITEMS: { key: Screen; label: string; num: string }[] = [
-  { key: "home", label: "home", num: "1" },
-  { key: "projects", label: "projects", num: "2" },
-  { key: "about", label: "about", num: "3" },
-  { key: "contact", label: "contact", num: "4" },
-  { key: "stats", label: "stats", num: "5" },
-  { key: "heatmap", label: "heatmap", num: "6" },
-  { key: "now", label: "now", num: "7" },
-  { key: "uses", label: "uses", num: "8" },
-  { key: "pomodoro", label: "pomodoro", num: "9" },
-  { key: "system", label: "system", num: "0" },
+const ITEMS: { key: Screen; label: string; num: string; icon: string }[] = [
+  { key: "home", label: "home", num: "1", icon: "⌂" },
+  { key: "projects", label: "projects", num: "2", icon: "◈" },
+  { key: "about", label: "about", num: "3", icon: "◉" },
+  { key: "contact", label: "contact", num: "4", icon: "✉" },
+  { key: "stats", label: "stats", num: "5", icon: "▲" },
+  { key: "heatmap", label: "heatmap", num: "6", icon: "▦" },
+  { key: "now", label: "now", num: "7", icon: "◎" },
+  { key: "uses", label: "uses", num: "8", icon: "⚙" },
+  { key: "pomodoro", label: "pomodoro", num: "9", icon: "⏱" },
+  { key: "system", label: "system", num: "0", icon: "⚡" },
 ]
 
 interface SidebarProps {
   active: Screen
+  terminalWidth: number
   onNavigate: (s: Screen) => void
 }
 
-export function Sidebar({ active, onNavigate }: SidebarProps) {
+export function Sidebar({ active, terminalWidth }: SidebarProps) {
   const theme = useTheme()
+  const isCompact = terminalWidth < 80
+  const sidebarWidth = isCompact ? 8 : 20
 
   return (
     <box
       style={{
-        width: 20,
+        width: sidebarWidth,
         height: "100%",
         flexDirection: "column",
         padding: 1,
@@ -33,19 +36,41 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
         borderColor: theme.border,
       }}
     >
-      <text content={t`${bold(fg(theme.accent)("diego"))}`} />
-      <text content={t`${fg(theme.muted)("letelier")}`} />
-      <text content={t`${dim("──────────────")}`} />
+      {!isCompact ? (
+        <>
+          <text content={t`${bold(fg(theme.accent)("diego"))}`} />
+          <text content={t`${fg(theme.muted)("letelier")}`} />
+          <text content={t`${dim("──────────────")}`} />
+        </>
+      ) : (
+        <>
+          <text content={t`${bold(fg(theme.accent)("DL"))}`} />
+          <text content={t`${dim("────")}`} />
+        </>
+      )}
 
       <box style={{ flexDirection: "column", gap: 0, flexGrow: 1 }}>
         {ITEMS.map((item) => {
           const isActive = item.key === active
+          if (isCompact) {
+            return (
+              <text
+                key={item.key}
+                content={
+                  isActive
+                    ? t`${bold(fg(theme.accent)(`▶${item.num}`))}`
+                    : t` ${fg(theme.muted)(item.num)}`
+                }
+              />
+            )
+          }
+
           return (
             <text
               key={item.key}
               content={
                 isActive
-                  ? t`${fg(theme.accent)(item.num)} ${bold(fg(theme.fg)(item.label))} ${fg(theme.accent)("◀")}`
+                  ? t`${fg(theme.accent)(item.num)} ${bold(fg(theme.fg)(item.label.padEnd(9)))} ${fg(theme.accent)("◀")}`
                   : t`${fg(theme.muted)(item.num)} ${fg(theme.muted)(item.label)}`
               }
             />
@@ -53,9 +78,19 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
         })}
       </box>
 
-      <text content={t`${dim("──────────────")}`} />
-      <text content={t`${fg(theme.accent)("t")}${dim(" theme")}`} />
-      <text content={t`${fg(theme.muted)("q")}${dim(" welcome")}`} />
+      <text content={t`${dim(isCompact ? "────" : "──────────────")}`} />
+      {!isCompact ? (
+        <>
+          <text content={t`${fg(theme.accent)("t")}${dim(" theme")}`} />
+          <text content={t`${fg(theme.muted)("q")}${dim(" welcome")}`} />
+        </>
+      ) : (
+        <>
+          <text content={t`${fg(theme.accent)("t")}`} />
+          <text content={t`${fg(theme.muted)("q")}`} />
+        </>
+      )}
     </box>
   )
 }
+

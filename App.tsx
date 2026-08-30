@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { useKeyboard } from "@opentui/react"
+import { useState } from "react"
+import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { t, bold, fg, dim } from "@opentui/core"
 import { Sidebar } from "./Sidebar"
 import { HomeScreen } from "./screens/Home"
@@ -7,20 +7,15 @@ import { ProjectsScreen } from "./screens/Projects"
 import { AboutScreen } from "./screens/About"
 import { ContactScreen } from "./screens/Contact"
 import { StatsScreen } from "./screens/Stats"
-import { SystemScreen } from "./screens/System"
-import { TriviaScreen } from "./screens/Trivia"
 import { HeatmapScreen } from "./screens/Heatmap"
 import { NowScreen } from "./screens/Now"
 import { UsesScreen } from "./screens/Uses"
 import { PomodoroScreen } from "./screens/Pomodoro"
-import { THEMES, ThemeContext, type ThemeName, type Screen } from "./data"
+import { SystemScreen } from "./screens/System"
+import { TriviaScreen } from "./screens/Trivia"
+import { THEMES, ThemeContext, PROFILE, type ThemeName, type Screen } from "./data"
 
 const FULL_SPLASH_ART = [
-  "                                                                      ",
-  "                                                                      ",
-  "                                                                      ",
-  "                                                                      ",
-  "                                       $                              ",
   "                            {~?-_+<>i>~~_[[_                          ",
   "                          >>>l;;,,;;:;li+_+~-]                        ",
   "                        ~i;:,:^^^^^\"\",:;!>>~+<--                      ",
@@ -49,12 +44,6 @@ const FULL_SPLASH_ART = [
   "       \"\"\"^^\"\"\"\"^^^^!zXuu/)){rYULOwppdbbdab];:::^\",,:::;!+{           ",
   "     ,\"^^^^^^\"^^^^\"^^}uXzxjx\\|J0QOZZwpQC1::;;:,`^,,:::,,,,,\",:;;I>    ",
   "   :\"^^^^^^^^^^^^^\"\"^^^;_fucu/UwQn1~l::;::::,\"^^\":::\"^\",,\"^^\",,:,\",;I-",
-  "  ,\"^^^\"\"^^\"\"^^^^\"\"\"\"\"\"^\"\"\"\",,:,,,,,,::::,,,,^`^,;:\"`\"\"\"\"^^^,::\"^\",:::",
-  "\"^\"^^^\"\"^^\"\"\"\"^^^^\"^^\"\"\"\"\"\"\"\",\"\"\"\",,:,,\",,,,\"``\";:\"^^\"\"\"^`^\"::^`^\"::,,",
-  "`^\"^\"\"\"\"\"^\"\"\"\"^^\"\"\"^\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,:,,,,^`^:;\"^^\"\",^``^:;^`^\",:,\",",
-  "^\"\"^\"\"\"\"^^\"\"\"\"^^\"\"\"\"\"\"\"\"\",,,,\"\",,::::,:,,,,\"``\":;\"^^\",\"^'`,:^`^\"\"::\"\"\"",
-  "\"\"^^\"\"\"\"^^\"\"\"\"\"\"\"\"\"\"\"\"\",,\"\"\"\",,,,:,,,,,,,,,^`^,;:^^\",\"\"^`^:^`\"^^,::\"``",
-  "\"\"`^\"\"\"\"^\"\"\"\"\"\"\"\",,\",,,\"\",\",,,,,::,,,,,,,,\"``^,:;\"^\",,\"``\":`\"\"'\",:,`'`"
 ]
 
 const BIG_D = ["██████ ", "██   ██", "██   ██", "██   ██", "██████ "]
@@ -67,32 +56,36 @@ const BIG_NAME = [0, 1, 2, 3, 4].map((i) =>
   `${BIG_D[i]} ${BIG_I[i]} ${BIG_E[i]} ${BIG_G[i]} ${BIG_O[i]}`
 )
 
+const SCREEN_ORDER: Screen[] = [
+  "home",
+  "projects",
+  "about",
+  "contact",
+  "stats",
+  "heatmap",
+  "now",
+  "uses",
+  "pomodoro",
+  "system",
+]
+
 export default function App() {
   const [phase, setPhase] = useState<"welcome" | "portfolio" | "trivia">("welcome")
   const [screen, setScreen] = useState<Screen>("home")
   const [themeName, setThemeName] = useState<ThemeName>("One Dark")
-  const [terminalHeight, setTerminalHeight] = useState(process.stdout.rows || 40)
-  const [terminalWidth, setTerminalWidth] = useState(process.stdout.columns || 80)
+  const dimensions = useTerminalDimensions()
 
-  const theme = THEMES[themeName]
+  const terminalWidth = dimensions.width || process.stdout.columns || 80
+  const terminalHeight = dimensions.height || process.stdout.rows || 40
 
-  useEffect(() => {
-    const handleResize = () => {
-      setTerminalHeight(process.stdout.rows || 40)
-      setTerminalWidth(process.stdout.columns || 80)
-    }
-    process.stdout.on("resize", handleResize)
-    return () => {
-      process.stdout.off("resize", handleResize)
-    }
-  }, [])
+  const theme = THEMES[themeName] ?? THEMES["One Dark"]
 
   useKeyboard((key) => {
     if (key.name === "escape" && phase !== "trivia") {
       process.exit(0)
     }
 
-    if (key.name === "t") {
+    if (key.name === "t" && phase !== "trivia") {
       setThemeName((prev) => {
         const keys = Object.keys(THEMES) as ThemeName[]
         const idx = keys.indexOf(prev)
@@ -118,38 +111,55 @@ export default function App() {
       if (key.name === "8") setScreen("uses")
       if (key.name === "9") setScreen("pomodoro")
       if (key.name === "0") setScreen("system")
+      if (key.name === "tab") {
+        setScreen((prev) => {
+          const idx = SCREEN_ORDER.indexOf(prev)
+          return SCREEN_ORDER[(idx + 1) % SCREEN_ORDER.length] ?? "home"
+        })
+      }
       if (key.name === "q") setPhase("welcome")
     }
   })
 
-  // Show the user's manual me.txt directly (no dynamic cropping)
-  // On small terminals, slice off the first 4 empty lines to prevent overflow
-  const isSmallHeight = terminalHeight < 48
-  const slicedArt = isSmallHeight ? FULL_SPLASH_ART.slice(4) : FULL_SPLASH_ART
-
-  const isSmallTitle = terminalHeight < 46
+  // Responsive Welcome Art decision
+  const showFullArt = terminalWidth >= 76 && terminalHeight >= 38
+  const showBigName = terminalWidth >= 54 && terminalHeight >= 26
 
   return (
     <ThemeContext.Provider value={theme}>
       {phase === "welcome" && (
         <box style={{ flexDirection: "column", width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}>
-          {slicedArt.map((line, i) => (
-            <text key={i} content={t`${line}`} />
-          ))}
-          <text content={t``} />
-          {isSmallTitle ? (
-            <text content={t`${bold(fg(theme.accent)("D I E G O"))}`} />
-          ) : (
-            BIG_NAME.map((line, i) => (
-              <text key={`name-${i}`} content={t`${fg(theme.accent)(line)}`} />
-            ))
+          {showFullArt && (
+            <box style={{ flexDirection: "column", alignItems: "center", marginBottom: 1 }}>
+              {FULL_SPLASH_ART.map((line, i) => (
+                <text key={i} content={t`${fg(theme.accent)(line)}`} />
+              ))}
+            </box>
           )}
+
+          {showBigName ? (
+            <box style={{ flexDirection: "column", alignItems: "center", marginBottom: 1 }}>
+              {BIG_NAME.map((line, i) => (
+                <text key={`name-${i}`} content={t`${bold(fg(theme.accent)(line))}`} />
+              ))}
+            </box>
+          ) : (
+            <box style={{ flexDirection: "column", alignItems: "center", marginBottom: 1 }}>
+              <text content={t`╔════════════════════════════════════════════╗`} />
+              <text content={t`║   ${bold(fg(theme.accent)("D I E G O   L E T E L I E R"))}            ║`} />
+              <text content={t`║   ${fg(theme.muted)(PROFILE.title)}   ║`} />
+              <text content={t`╚════════════════════════════════════════════╝`} />
+            </box>
+          )}
+
+          <text content={t`${fg(theme.muted)(PROFILE.status)}`} />
           <text content={t``} />
-          <box style={{ borderStyle: "rounded", borderColor: theme.border, padding: 1, flexDirection: "column", width: 54, alignItems: "center" }}>
+
+          <box style={{ borderStyle: "rounded", borderColor: theme.border, padding: 1, flexDirection: "column", width: Math.min(54, terminalWidth - 4), alignItems: "center" }}>
             <text content={t`Press ${bold(fg(theme.accent)("[ENTER]"))} to view Portfolio`} />
-            <text content={t`Press ${bold(fg(theme.success)("[G]"))} to play Dev Trivia`} />
+            <text content={t`Press ${bold(fg(theme.success)("[G]"))} to play Dev Trivia Quiz`} />
             <text content={t`Press ${bold(fg(theme.link)("[T]"))} to cycle Theme ${dim(`(${themeName})`)}`} />
-            <text content={t`Press ${bold(fg(theme.error)("[ESC]"))} to exit`} />
+            <text content={t`Press ${bold(fg(theme.error)("[ESC]"))} to Exit`} />
           </box>
         </box>
       )}
@@ -160,14 +170,14 @@ export default function App() {
 
       {phase === "portfolio" && (
         <box style={{ flexDirection: "row", width: "100%", height: "100%" }}>
-          <Sidebar active={screen} onNavigate={setScreen} />
+          <Sidebar active={screen} terminalWidth={terminalWidth} onNavigate={setScreen} />
           <box style={{ flexGrow: 1, flexDirection: "column", padding: 1, borderStyle: "rounded", borderColor: theme.border, marginLeft: 1 }}>
             {screen === "home" && <HomeScreen width={terminalWidth} />}
-            {screen === "projects" && <ProjectsScreen />}
+            {screen === "projects" && <ProjectsScreen width={terminalWidth} />}
             {screen === "about" && <AboutScreen width={terminalWidth} />}
             {screen === "contact" && <ContactScreen />}
             {screen === "stats" && <StatsScreen width={terminalWidth} />}
-            {screen === "heatmap" && <HeatmapScreen />}
+            {screen === "heatmap" && <HeatmapScreen width={terminalWidth} />}
             {screen === "now" && <NowScreen />}
             {screen === "uses" && <UsesScreen />}
             {screen === "pomodoro" && <PomodoroScreen />}
@@ -178,3 +188,4 @@ export default function App() {
     </ThemeContext.Provider>
   )
 }
+

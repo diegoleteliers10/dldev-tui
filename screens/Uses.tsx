@@ -5,35 +5,35 @@ import { useTheme } from "../data"
 
 const SETUP = {
   editor: [
-    { label: "Editor", value: "Zed" },
-    { label: "Terminal", value: "Ghostty + Fish" },
-    { label: "Font", value: "Zed Mono Extended" },
-    { label: "Theme", value: "One Dark" },
-    { label: "Prompt", value: "Starship" },
-    { label: "Multiplexer", value: "tmux" },
+    { label: "Editor", value: "Zed & VS Code (Vim mode)" },
+    { label: "Terminal", value: "Ghostty / Kitty + Fish Shell" },
+    { label: "Font", value: "Zed Mono Extended / Berkeley Mono" },
+    { label: "Theme", value: "One Dark / Catppuccin Macchiato" },
+    { label: "Prompt", value: "Starship prompt with custom git status" },
+    { label: "Multiplexer", value: "tmux + custom sessionizer" },
   ],
   hardware: [
-    { label: "Machine", value: "Acer Aspire 3" },
-    { label: "RAM / SSD", value: "8 GB / 256 GB" },
-    { label: "Monitor", value: "LG 27\" 4K IPS" },
-    { label: "Keyboard", value: "Keychron K2 (Brown)" },
-    { label: "Mouse", value: "Logitech MX Master 3" },
-    { label: "Headphones", value: "Sony WH-1000XM5" },
+    { label: "Primary Machine", value: "Apple Silicon Mac (M-Series)" },
+    { label: "Workstation", value: "Linux x86_64 Dev Box" },
+    { label: "Monitor", value: "27\" 4K IPS Ultra-sharp" },
+    { label: "Keyboard", value: "Keychron Mechanical (Custom Brown Switches)" },
+    { label: "Mouse", value: "Logitech MX Master 3S" },
+    { label: "Audio", value: "Sony WH-1000XM5 Noise Cancelling" },
   ],
   tools: [
-    { label: "Runtime", value: "Bun" },
-    { label: "Pkg Manager", value: "Bun" },
-    { label: "Containers", value: "Docker Desktop" },
-    { label: "DB Client", value: "TablePlus" },
-    { label: "Launcher", value: "Raycast" },
-    { label: "Project Mgmt", value: "Linear" },
+    { label: "Runtimes", value: "Bun, Node.js (LTS), Rust (rustup/cargo), Go" },
+    { label: "Pkg Manager", value: "Bun & Cargo" },
+    { label: "Containerization", value: "Docker Desktop & OrbStack" },
+    { label: "Database Client", value: "TablePlus & psql CLI" },
+    { label: "Productivity", value: "Raycast + custom extensions" },
+    { label: "Version Control", value: "Git, GitHub CLI (gh), Lazygit" },
   ],
 }
 
 const CATEGORIES = [
-  { id: "editor", label: "Editor & Terminal", icon: "⌨️" },
+  { id: "editor", label: "Editor & Shell", icon: "⌨️" },
   { id: "hardware", label: "Hardware & Gear", icon: "💻" },
-  { id: "tools", label: "Stack & Tools", icon: "🛠️" },
+  { id: "tools", label: "Dev Tools & Stack", icon: "🛠️" },
 ]
 
 export function UsesScreen() {
@@ -48,31 +48,34 @@ export function UsesScreen() {
     }
   })
 
-  const activeCategory = CATEGORIES[activeIndex]!
+  const activeCategory = CATEGORIES[activeIndex] ?? CATEGORIES[0]!
 
   const renderItems = (items: Array<{ label: string; value: string }>) =>
     items.map((item) => (
-      <box key={item.label} style={{ flexDirection: "row", gap: 1 }}>
-        <text content={t`  ${fg(theme.muted)(item.label.padEnd(16))} ${fg(theme.fg)(item.value)}`} />
+      <box key={item.label} style={{ flexDirection: "column", gap: 0 }}>
+        <text content={t`  ${bold(fg(theme.accent)(item.label))}`} />
+        <text content={t`    ${fg(theme.fg)(item.value)}`} />
       </box>
     ))
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
-      <text content={t`${bold(fg(theme.accent)("uses"))} ${dim("// my development setup")}`} />
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
+      <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <text content={t`${bold(fg(theme.accent)("USES"))} ${dim("// hardware, editor & developer setup")}`} />
+        <text content={t`${fg(theme.muted)("Environment:")} ${fg(theme.fg)("macOS / Linux")}`} />
+      </box>
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
 
       {/* Columns: Left Categories, Right Items */}
-      <box style={{ flexDirection: "row", gap: 2, flexGrow: 1 }}>
-        
+      <box style={{ flexDirection: "row", gap: 1, flexGrow: 1 }}>
         {/* Left: Setup Categories */}
         <box
           title=" Setup Group "
           titleColor={theme.accent}
           style={{
-            width: 24,
+            width: 22,
             flexDirection: "column",
-            gap: 1,
+            gap: 0,
             padding: 1,
             borderStyle: "rounded",
             borderColor: theme.border,
@@ -112,11 +115,9 @@ export function UsesScreen() {
         </box>
       </box>
 
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
-      <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <text content={t`  ${dim("1-9 switch")}  ${dim("t")} ${fg(theme.muted)("theme")}  ${dim("q")} ${fg(theme.muted)("back")}`} />
-        <text content={t`${dim("Use ↑/↓ or J/K to browse")}  `} />
-      </box>
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
+      <text content={t`  ${dim("Controls:")} ${bold(fg(theme.accent)("↑/↓ / J/K"))} ${dim("Select Group")}  │  ${bold(fg(theme.accent)("1-0"))} ${dim("Screens")}  │  ${bold(fg(theme.accent)("[T]"))} ${dim("Theme")}  │  ${bold(fg(theme.accent)("[Q]"))} ${dim("Back")}`} />
     </box>
   )
 }
+

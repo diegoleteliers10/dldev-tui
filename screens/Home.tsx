@@ -3,34 +3,41 @@ import { useTheme, PROFILE, REPOS } from "../data"
 
 export function HomeScreen({ width }: { width: number }) {
   const theme = useTheme()
-  const topRepos = REPOS.filter((r) => r.stars > 0 || r.highlight).slice(0, 5)
+  const topRepos = REPOS.filter((r) => r.highlight || r.stars > 0).slice(0, 6)
+  const isNarrow = width < 85
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
-      <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
-        <text content={t`${bold(fg(theme.accent)("diego letelier"))} ${dim("// building tools that solve real problems")}`} />
+      {/* Header Banner */}
+      <box style={{ flexDirection: isNarrow ? "column" : "row", justifyContent: "space-between", marginBottom: 0 }}>
+        <text content={t`${bold(fg(theme.accent)(PROFILE.name.toUpperCase()))} ${dim(`// ${PROFILE.title}`)}`} />
+        <text content={t`${fg(theme.success)(PROFILE.status)}`} />
       </box>
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
 
-      <box style={{ flexDirection: width < 75 ? "column" : "row", gap: width < 75 ? 0 : 2, flexGrow: 1 }}>
+      {/* Profile & Stack Grid */}
+      <box style={{ flexDirection: isNarrow ? "column" : "row", gap: 1 }}>
         {/* Info Box */}
         <box
-          title=" Profile "
+          title=" Profile Overview "
           titleColor={theme.accent}
           style={{
             flexDirection: "column",
-            gap: 1,
+            gap: 0,
             flexGrow: 1,
             padding: 1,
             borderStyle: "rounded",
             borderColor: theme.border,
           }}
         >
-          <text content={t`  ${fg(theme.muted)("web")}  ${underline(fg(theme.link)(PROFILE.website))}`} />
-          <text content={t`  ${fg(theme.muted)("repo")}  ${fg(theme.fg)(String(PROFILE.totalRepos))} ${fg(theme.muted)("public")}`} />
-          <text content={t`  ${fg(theme.muted)("loc")}   ${fg(theme.fg)(PROFILE.location)}`} />
+          <text content={t`  ${fg(theme.muted)("Role:")}      ${bold(fg(theme.fg)(PROFILE.role))}`} />
+          <text content={t`  ${fg(theme.muted)("Location:")}  ${fg(theme.fg)(PROFILE.location)}`} />
+          <text content={t`  ${fg(theme.muted)("Website:")}   ${underline(fg(theme.link)(PROFILE.website))}`} />
+          <text content={t`  ${fg(theme.muted)("GitHub:")}    ${underline(fg(theme.link)(PROFILE.github))}`} />
+          <text content={t`  ${fg(theme.muted)("Public Repos:")} ${bold(fg(theme.warn)(String(PROFILE.totalRepos)))}`} />
         </box>
 
-        {/* Stack Box */}
+        {/* Core Stack */}
         <box
           title=" Core Stack "
           titleColor={theme.accent}
@@ -43,15 +50,17 @@ export function HomeScreen({ width }: { width: number }) {
             borderColor: theme.border,
           }}
         >
-          {PROFILE.languages.map((lang) => (
-            <text key={lang} content={t`  ${fg(theme.link)(lang)}`} />
-          ))}
+          <text content={t`  ${fg(theme.muted)("Languages:")}  ${bold(fg(theme.link)("TypeScript, Rust, Python, Go"))}`} />
+          <text content={t`  ${fg(theme.muted)("Frontend:")}   ${fg(theme.fg)("React, Next.js, Astro, Tailwind")}`} />
+          <text content={t`  ${fg(theme.muted)("Backend:")}    ${fg(theme.fg)("Node.js, Bun, Express, NestJS")}`} />
+          <text content={t`  ${fg(theme.muted)("Data & Infra:")} ${fg(theme.fg)("PostgreSQL, Docker, Linux")}`} />
+          <text content={t`  ${fg(theme.muted)("Focus:")}      ${fg(theme.success)("Dev Tools, Systems & Real-time Apps")}`} />
         </box>
       </box>
 
-      {/* Selected Repos Box */}
+      {/* Selected Featured Repositories */}
       <box
-        title=" Selected Repositories "
+        title=" Featured Open-Source Projects "
         titleColor={theme.accent}
         style={{
           flexDirection: "column",
@@ -59,22 +68,28 @@ export function HomeScreen({ width }: { width: number }) {
           padding: 1,
           borderStyle: "rounded",
           borderColor: theme.border,
-          marginTop: 1,
+          flexGrow: 1,
         }}
       >
-        {topRepos.map((repo) => (
-          <text
-            key={repo.name}
-            content={repo.stars > 0
-              ? t`  ${bold(fg(theme.link)(repo.name))}  ${dim(repo.description)}  ${fg(theme.accent)(repo.stars + "★")}`
-              : t`  ${bold(fg(theme.link)(repo.name))}  ${dim(repo.description)}`
-            }
-          />
-        ))}
+        {topRepos.map((repo) => {
+          const maxDescLen = isNarrow ? Math.max(15, width - 45) : Math.max(25, width - 58)
+          const desc = repo.description.length > maxDescLen
+            ? repo.description.slice(0, maxDescLen - 3) + "..."
+            : repo.description
+          const starStr = repo.stars > 0 ? `★ ${repo.stars}` : "    "
+
+          return (
+            <box key={repo.name} style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <text content={t`  ${bold(fg(theme.link)(repo.name.padEnd(22)))} ${dim(desc)}`} />
+              <text content={t`${fg(theme.warn)(starStr)} ${fg(theme.muted)(`[${repo.language ?? "Docs"}]`)}  `} />
+            </box>
+          )
+        })}
       </box>
 
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
-      <text content={t`  ${dim("1-6 switch")}  ${dim("t")} ${fg(theme.muted)("theme")}  ${dim("q")} ${fg(theme.muted)("back")}`} />
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
+      <text content={t`  ${dim("Quick Keys:")} ${bold(fg(theme.accent)("1-0"))} ${dim("Screens")}  │  ${bold(fg(theme.accent)("[T]"))} ${dim("Theme")}  │  ${bold(fg(theme.accent)("[Q]"))} ${dim("Welcome Screen")}  │  ${bold(fg(theme.error)("[ESC]"))} ${dim("Exit")}`} />
     </box>
   )
 }
+

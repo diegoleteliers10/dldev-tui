@@ -4,27 +4,28 @@ import { t, bold, fg, dim } from "@opentui/core"
 import { useTheme } from "../data"
 
 const BUILDING = [
-  { name: "dldev TUI", desc: "this very portfolio terminal" },
-  { name: "llegapo", desc: "Santiago real-time transit app" },
-  { name: "open-banking-chile", desc: "open source bank scrapers" },
+  { name: "dldev TUI", desc: "Interactive developer portfolio in terminal (OpenTUI & React)" },
+  { name: "llegapo", desc: "Real-time Santiago public transit tracking mobile app" },
+  { name: "open-banking-chile", desc: "Open-source data scrapers & financial connectors" },
+  { name: "indies.cl community", desc: "Organizing meetups, hackathons & open source in LATAM" },
 ]
 
 const LEARNING = [
-  { name: "Rust", desc: "systems programming & ownership" },
-  { name: "Distributed Systems", desc: "consensus, replication, CAP" },
-  { name: "CS @ UDD", desc: "algorithms & data structures" },
+  { name: "Rust & Systems Programming", desc: "Memory safety, concurrency, FFI & high-throughput pipelines" },
+  { name: "Distributed Systems & Cloud", desc: "Consensus protocols, database indexing, caching & CAP theorem" },
+  { name: "Computer Science @ UDD", desc: "Advanced data structures, discrete mathematics & algorithms" },
 ]
 
 const LISTENING = [
-  { name: "Darkside", desc: "Psychic (album)" },
-  { name: "Bonobo", desc: "Fragments (album)" },
-  { name: "Syntax.fm", desc: "web dev podcast" },
+  { name: "Darkside", desc: "Psychic (Album) — Electronic / Ambient" },
+  { name: "Bonobo", desc: "Fragments (Album) — Downtempo / Electronica" },
+  { name: "Syntax.fm & Changelog", desc: "Deep dives on modern software engineering & tooling" },
 ]
 
 const THINKING = [
-  "How to make Chilean fintech more open and accessible",
-  "Building a Rust-based CLI toolkit for everyday devs",
-  "The intersection of community building and open source",
+  "Building high-performance CLI tools that streamline day-to-day developer workflows",
+  "Making open financial APIs accessible and democratized across Latin America",
+  "The convergence of autonomous AI coding agents and terminal interfaces",
 ]
 
 const CATEGORIES = [
@@ -46,27 +47,26 @@ export function NowScreen() {
     }
   })
 
-  const activeCategory = CATEGORIES[activeIndex]!
+  const activeCategory = CATEGORIES[activeIndex] ?? CATEGORIES[0]!
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
       <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <text content={t`${bold(fg(theme.accent)("now"))} ${dim("// what i'm up to right now")}`} />
-        <text content={t`${fg(theme.muted)("updated:")} ${fg(theme.fg)("June 2026")}`} />
+        <text content={t`${bold(fg(theme.accent)("NOW"))} ${dim("// current focus, projects & learning")}`} />
+        <text content={t`${fg(theme.muted)("Updated:")} ${fg(theme.fg)("2026")}`} />
       </box>
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
 
       {/* Columns: Left Category List, Right Category Details */}
-      <box style={{ flexDirection: "row", gap: 2, flexGrow: 1 }}>
-        
+      <box style={{ flexDirection: "row", gap: 1, flexGrow: 1 }}>
         {/* Left: Categories Menu */}
         <box
-          title=" Section "
+          title=" Focus Area "
           titleColor={theme.accent}
           style={{
-            width: 22,
+            width: 20,
             flexDirection: "column",
-            gap: 1,
+            gap: 0,
             padding: 1,
             borderStyle: "rounded",
             borderColor: theme.border,
@@ -104,7 +104,7 @@ export function NowScreen() {
             BUILDING.map((item) => (
               <box key={item.name} style={{ flexDirection: "column" }}>
                 <text content={t`  ${bold(fg(theme.link)(item.name))}`} />
-                <text content={t`    ${fg(theme.muted)(item.desc)}`} />
+                <text content={t`    ${fg(theme.fg)(item.desc)}`} />
               </box>
             ))}
 
@@ -112,7 +112,7 @@ export function NowScreen() {
             LEARNING.map((item) => (
               <box key={item.name} style={{ flexDirection: "column" }}>
                 <text content={t`  ${bold(fg(theme.success)(item.name))}`} />
-                <text content={t`    ${fg(theme.muted)(item.desc)}`} />
+                <text content={t`    ${fg(theme.fg)(item.desc)}`} />
               </box>
             ))}
 
@@ -120,7 +120,7 @@ export function NowScreen() {
             LISTENING.map((item) => (
               <box key={item.name} style={{ flexDirection: "column" }}>
                 <text content={t`  ${bold(fg(theme.warn)(item.name))}`} />
-                <text content={t`    ${fg(theme.muted)(item.desc)}`} />
+                <text content={t`    ${fg(theme.fg)(item.desc)}`} />
               </box>
             ))}
 
@@ -131,11 +131,9 @@ export function NowScreen() {
         </box>
       </box>
 
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
-      <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <text content={t`  ${dim("1-9 switch")}  ${dim("t")} ${fg(theme.muted)("theme")}  ${dim("q")} ${fg(theme.muted)("back")}`} />
-        <text content={t`${dim("Use ↑/↓ or J/K to browse")}  `} />
-      </box>
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
+      <text content={t`  ${dim("Controls:")} ${bold(fg(theme.accent)("↑/↓ / J/K"))} ${dim("Select Area")}  │  ${bold(fg(theme.accent)("1-0"))} ${dim("Screens")}  │  ${bold(fg(theme.accent)("[T]"))} ${dim("Theme")}  │  ${bold(fg(theme.accent)("[Q]"))} ${dim("Back")}`} />
     </box>
   )
 }
+

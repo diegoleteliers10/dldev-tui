@@ -17,11 +17,12 @@ function formatUptime(seconds: number): string {
   return parts.join(" ")
 }
 
-function makeProgressBar(percentage: number, theme: Theme, width: number = 20): string {
-  const filled = Math.round((percentage / 100) * width)
-  const empty = width - filled
-  return "\u2588".repeat(filled) + "\u2591".repeat(empty)
+function makeProgressBar(percentage: number, width: number = 20): string {
+  const filled = Math.min(width, Math.max(0, Math.round((percentage / 100) * width)))
+  const empty = Math.max(0, width - filled)
+  return "█".repeat(filled) + "░".repeat(empty)
 }
+
 
 interface SystemInfo {
   platform: string
@@ -42,17 +43,16 @@ interface SystemInfo {
 function getSystemInfo(): SystemInfo {
   const totalMem = os.totalmem()
   const freeMem = os.freemem()
-  const usedMem = totalMem - freeMem
+  const usedMem = Math.max(0, totalMem - freeMem)
 
   const totalMemGB = totalMem / (1024 * 1024 * 1024)
   const freeMemGB = freeMem / (1024 * 1024 * 1024)
   const usedMemGB = usedMem / (1024 * 1024 * 1024)
-  const memPercentage = (usedMem / totalMem) * 100
+  const memPercentage = totalMem > 0 ? (usedMem / totalMem) * 100 : 0
 
   const cpus = os.cpus()
-  const cpuModel = cpus.length > 0 ? (cpus[0]?.model?.trim() ?? "Unknown CPU") : "Unknown CPU"
+  const cpuModel = cpus.length > 0 ? (cpus[0]?.model?.trim() ?? "Apple Silicon / x86_64") : "Apple Silicon / x86_64"
 
-  // Get first external IPv4 address
   const interfaces = os.networkInterfaces()
   let ipAddress = "127.0.0.1"
   for (const name of Object.keys(interfaces)) {
@@ -73,7 +73,7 @@ function getSystemInfo(): SystemInfo {
     arch: os.arch(),
     hostname: os.hostname(),
     cpuModel,
-    cpuCores: cpus.length,
+    cpuCores: cpus.length || 8,
     totalMemGB,
     freeMemGB,
     usedMemGB,
@@ -91,67 +91,62 @@ export function SystemScreen() {
   useEffect(() => {
     const timer = setInterval(() => {
       setInfo(getSystemInfo())
-    }, 1000)
+    }, 1500)
     return () => clearInterval(timer)
   }, [])
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
       <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <text content={t`${bold(fg(theme.accent)("system status"))} ${dim("// diagnostics & resources")}`} />
-        <text content={t`${fg(theme.muted)("host:")} ${fg(theme.fg)(info.hostname)}`} />
+        <text content={t`${bold(fg(theme.accent)("SYSTEM DIAGNOSTICS"))} ${dim("// runtime environment & host")}`} />
+        <text content={t`${fg(theme.muted)("Host:")} ${bold(fg(theme.fg)(info.hostname))}`} />
       </box>
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
 
       {/* Main system layout */}
-      <box style={{ flexDirection: "row", gap: 3, flexGrow: 1 }}>
-        
+      <box style={{ flexDirection: "row", gap: 1, flexGrow: 1 }}>
         {/* Left Column: OS & Platform */}
         <box
-          title=" OS Info "
+          title=" OS & Platform "
           titleColor={theme.accent}
           style={{
             flexDirection: "column",
-            gap: 1,
+            gap: 0,
             flexGrow: 1,
             padding: 1,
             borderStyle: "rounded",
             borderColor: theme.border,
           }}
         >
-          <text content={t`  ${fg(theme.muted)("platform")}  ${fg(theme.fg)(info.platform)}`} />
-          <text content={t`  ${fg(theme.muted)("release")}   ${fg(theme.fg)(info.release.slice(0, 16))}`} />
-          <text content={t`  ${fg(theme.muted)("arch")}      ${fg(theme.fg)(info.arch)}`} />
-          <text content={t`  ${fg(theme.muted)("uptime")}    ${fg(theme.success)(formatUptime(info.uptimeSec))}`} />
-          <text content={t`  ${fg(theme.muted)("ip addr")}   ${fg(theme.link)(info.ipAddress)}`} />
+          <text content={t`  ${fg(theme.muted)("Platform:")}  ${bold(fg(theme.fg)(info.platform))}`} />
+          <text content={t`  ${fg(theme.muted)("Release:")}   ${fg(theme.fg)(info.release.slice(0, 18))}`} />
+          <text content={t`  ${fg(theme.muted)("Arch:")}      ${fg(theme.fg)(info.arch)}`} />
+          <text content={t`  ${fg(theme.muted)("Uptime:")}    ${fg(theme.success)(formatUptime(info.uptimeSec))}`} />
+          <text content={t`  ${fg(theme.muted)("IP Addr:")}   ${fg(theme.link)(info.ipAddress)}`} />
         </box>
 
         {/* Right Column: Hardware & Specs */}
         <box
-          title=" Hardware & Resources "
+          title=" Hardware Resources "
           titleColor={theme.accent}
           style={{
             flexDirection: "column",
-            gap: 1,
+            gap: 0,
             flexGrow: 2,
             padding: 1,
             borderStyle: "rounded",
             borderColor: theme.border,
           }}
         >
-          <text content={t`  ${fg(theme.muted)("CPU")}  ${fg(theme.fg)(info.cpuModel)}`} />
-          <text content={t`  ${fg(theme.muted)("Cores")} ${fg(theme.fg)(String(info.cpuCores))} threads`} />
-          <text content={t`  ${fg(theme.muted)("Load")}  ${fg(theme.fg)(info.loadAvg.map(l => l.toFixed(2)).join(" "))}`} />
-          
-          <box style={{ flexDirection: "column", marginTop: 1 }}>
-            <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <text content={t`  ${fg(theme.muted)("RAM Usage")}`} />
-              <text content={t`${fg(theme.accent)(info.memPercentage.toFixed(1) + "%")} ${dim(`(${info.usedMemGB.toFixed(1)}GB / ${info.totalMemGB.toFixed(1)}GB)`)}`} />
-            </box>
-            <text content={t`  ${fg(theme.accentDim)(makeProgressBar(info.memPercentage, theme, 25))}`} />
+          <text content={t`  ${fg(theme.muted)("CPU:")}     ${bold(fg(theme.fg)(info.cpuModel.slice(0, 36)))}`} />
+          <text content={t`  ${fg(theme.muted)("Cores:")}   ${fg(theme.fg)(String(info.cpuCores))} threads`} />
+          <text content={t`  ${fg(theme.muted)("Load Avg:")} ${fg(theme.fg)(info.loadAvg.map((l) => l.toFixed(2)).join("  "))}`} />
+          <text content={t``} />
+          <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <text content={t`  ${fg(theme.muted)("RAM:")} ${fg(theme.accent)(`${info.memPercentage.toFixed(1)}%`)} ${dim(`(${info.usedMemGB.toFixed(1)}GB / ${info.totalMemGB.toFixed(1)}GB)`)}`} />
+            <text content={t`${fg(theme.accent)(makeProgressBar(info.memPercentage, 18))}  `} />
           </box>
         </box>
-
       </box>
 
       {/* Runtimes & Dev Info */}
@@ -166,14 +161,15 @@ export function SystemScreen() {
           borderColor: theme.border,
         }}
       >
-        <text content={t`  ${fg(theme.muted)("bun:")} ${fg(theme.fg)(typeof Bun !== "undefined" ? Bun.version : "N/A")} `} />
-        <text content={t`  ${fg(theme.muted)("node:")} ${fg(theme.fg)(process.versions.node)}`} />
-        <text content={t`  ${fg(theme.muted)("pid:")} ${fg(theme.fg)(String(process.pid))}`} />
-        <text content={t`  ${fg(theme.muted)("memory:")} ${fg(theme.fg)((process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1) + " MB")}`} />
+        <text content={t`  ${fg(theme.muted)("Bun:")} ${bold(fg(theme.link)(typeof Bun !== "undefined" ? Bun.version : "N/A"))}`} />
+        <text content={t`${fg(theme.muted)("Node:")} ${fg(theme.fg)(process.versions.node)}`} />
+        <text content={t`${fg(theme.muted)("PID:")} ${fg(theme.fg)(String(process.pid))}`} />
+        <text content={t`${fg(theme.muted)("Heap:")} ${fg(theme.warn)(`${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)} MB`)}  `} />
       </box>
 
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
-      <text content={t`  ${dim("1-6 switch")}  ${dim("t")} ${fg(theme.muted)("theme")}  ${dim("q")} ${fg(theme.muted)("back")}`} />
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
+      <text content={t`  ${dim("Quick Keys:")} ${bold(fg(theme.accent)("1-0"))} ${dim("Screens")}  │  ${bold(fg(theme.accent)("[T]"))} ${dim("Theme")}  │  ${bold(fg(theme.accent)("[Q]"))} ${dim("Welcome Screen")}  │  ${bold(fg(theme.error)("[ESC]"))} ${dim("Exit")}`} />
     </box>
   )
 }
+

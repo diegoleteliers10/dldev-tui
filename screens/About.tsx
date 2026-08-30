@@ -1,49 +1,78 @@
 import { t, bold, fg, dim, underline } from "@opentui/core"
-import { useTheme, PROFILE, SKILLS, type Theme } from "../data"
+import { useTheme, PROFILE, EXPERIENCES, SKILLS, type Theme } from "../data"
 
-function skillBar(level: number, theme: Theme, width: number = 18): string {
-  const filled = Math.round((level / 100) * width)
-  return "\u2588".repeat(filled) + "\u2591".repeat(width - filled)
+function skillBar(level: number, width: number = 14): string {
+  const filled = Math.min(width, Math.max(0, Math.round((level / 100) * width)))
+  const empty = Math.max(0, width - filled)
+  return "█".repeat(filled) + "░".repeat(empty)
 }
 
 export function AboutScreen({ width }: { width: number }) {
   const theme = useTheme()
   const sortedSkills = Object.entries(SKILLS).sort((a, b) => b[1] - a[1])
+  const isNarrow = width < 85
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
-      <text content={t`${bold(fg(theme.accent)("about me"))}`} />
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
+      <box style={{ flexDirection: isNarrow ? "column" : "row", justifyContent: "space-between" }}>
+        <text content={t`${bold(fg(theme.accent)("ABOUT DIEGO LETELIER"))} ${dim("// background & journey")}`} />
+        <text content={t`${fg(theme.muted)("Location:")} ${fg(theme.fg)(PROFILE.location)}`} />
+      </box>
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
 
       {/* Bio Box */}
       <box
-        title=" Developer Profile "
+        title=" Developer Profile & Mission "
         titleColor={theme.accent}
         style={{
           flexDirection: "column",
-          gap: 1,
+          gap: 0,
           padding: 1,
           borderStyle: "rounded",
           borderColor: theme.border,
         }}
       >
         <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <text content={t`${bold(fg(theme.fg)(PROFILE.name))}  ${fg(theme.muted)("@" + PROFILE.handle)}`} />
-          <text content={t`${fg(theme.muted)(PROFILE.role)}`} />
+          <text content={t`  ${bold(fg(theme.fg)(PROFILE.name))}  ${fg(theme.muted)(`(@${PROFILE.handle})`)}`} />
+          <text content={t`${bold(fg(theme.accent)(PROFILE.title))}  `} />
         </box>
-        <text content={t`${fg(theme.fg)(PROFILE.bio)}`} />
-        <box style={{ flexDirection: width < 75 ? "column" : "row", gap: width < 75 ? 0 : 4, marginTop: 1 }}>
-          <text content={t`${fg(theme.muted)("location:")} ${fg(theme.fg)(PROFILE.location)}`} />
-          <text content={t`${fg(theme.muted)("website:")}  ${underline(fg(theme.link)(PROFILE.website))}`} />
+        <text content={t`  ${fg(theme.fg)(PROFILE.bio)}`} />
+        <box style={{ flexDirection: isNarrow ? "column" : "row", gap: isNarrow ? 0 : 3, marginTop: 1 }}>
+          <text content={t`  ${fg(theme.muted)("Education:")} ${fg(theme.fg)("Computer Science @ UDD + SoyHenry")}`} />
+          <text content={t`  ${fg(theme.muted)("Website:")}   ${underline(fg(theme.link)(PROFILE.website))}`} />
         </box>
       </box>
 
-      {/* Skills and Experience in Columns */}
-      <box style={{ flexDirection: width < 75 ? "column" : "row", gap: width < 75 ? 0 : 2, flexGrow: 1, marginTop: 1 }}>
-        
+      {/* Experience & Skills Columns */}
+      <box style={{ flexDirection: isNarrow ? "column" : "row", gap: 1, flexGrow: 1 }}>
+        {/* Experience Column */}
+        <box
+          title=" Experience & Education "
+          titleColor={theme.accent}
+          style={{
+            flexDirection: "column",
+            gap: 1,
+            flexGrow: 2,
+            padding: 1,
+            borderStyle: "rounded",
+            borderColor: theme.border,
+          }}
+        >
+          {EXPERIENCES.map((exp) => (
+            <box key={exp.organization} style={{ flexDirection: "column", gap: 0 }}>
+              <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <text content={t`  ${bold(fg(theme.accent)(exp.organization))} ${dim(`— ${exp.title}`)}`} />
+                <text content={t`${fg(theme.muted)(exp.period)}  `} />
+              </box>
+              <text content={t`    ${fg(theme.fg)(exp.description)}`} />
+              <text content={t`    ${fg(theme.muted)(exp.tags.map((tg) => `#${tg}`).join(" "))}`} />
+            </box>
+          ))}
+        </box>
+
         {/* Skills Column */}
         <box
-          title=" Skills "
+          title=" Technical Skills "
           titleColor={theme.accent}
           style={{
             flexDirection: "column",
@@ -54,41 +83,18 @@ export function AboutScreen({ width }: { width: number }) {
             borderColor: theme.border,
           }}
         >
-          {sortedSkills.map(([skill, level]) => (
-            <text
-              key={skill}
-              content={t`  ${fg(theme.muted)(skill.padEnd(12))} ${fg(theme.accentDim)(skillBar(level, theme))}  ${fg(theme.muted)(level + "%")}`}
-            />
+          {sortedSkills.slice(0, 8).map(([skill, level]) => (
+            <box key={skill} style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <text content={t`  ${fg(theme.fg)(skill.padEnd(14))}`} />
+              <text content={t`${fg(theme.accent)(skillBar(level, 12))} ${fg(theme.muted)(`${level}%`)}  `} />
+            </box>
           ))}
         </box>
-
-        {/* Experience Column */}
-        <box
-          title=" Experience "
-          titleColor={theme.accent}
-          style={{
-            flexDirection: "column",
-            gap: 1,
-            flexGrow: 1,
-            padding: 1,
-            borderStyle: "rounded",
-            borderColor: theme.border,
-          }}
-        >
-          <text content={t`  ${bold(fg(theme.accent)("SoyHenry"))}`} />
-          <text content={t`  ${dim("Full Stack Dev Graduate")}`} />
-          <text content={t``} />
-          <text content={t`  ${bold(fg(theme.accent)("UDD"))}`} />
-          <text content={t`  ${dim("Computer Science Student")}`} />
-          <text content={t``} />
-          <text content={t`  ${bold(fg(theme.accent)("Biovity"))}`} />
-          <text content={t`  ${dim("Co-founder & Developer")}`} />
-        </box>
-
       </box>
 
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
-      <text content={t`  ${dim("1-6 switch")}  ${dim("t")} ${fg(theme.muted)("theme")}  ${dim("q")} ${fg(theme.muted)("back")}`} />
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
+      <text content={t`  ${dim("Quick Keys:")} ${bold(fg(theme.accent)("1-0"))} ${dim("Screens")}  │  ${bold(fg(theme.accent)("[T]"))} ${dim("Theme")}  │  ${bold(fg(theme.accent)("[Q]"))} ${dim("Welcome Screen")}  │  ${bold(fg(theme.error)("[ESC]"))} ${dim("Exit")}`} />
     </box>
   )
 }
+

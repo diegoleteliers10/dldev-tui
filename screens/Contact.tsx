@@ -5,10 +5,10 @@ import { useTheme, PROFILE } from "../data"
 import { openUrl } from "../open"
 
 const LINKS = [
-  { label: "github", url: `https://github.com/${PROFILE.handle}` },
-  { label: "website", url: PROFILE.website },
-  { label: "linkedin", url: "https://linkedin.com/in/diegoletelier" },
-  { label: "email", url: `mailto:diego@${PROFILE.website.replace("https://", "").replace("/", "")}` },
+  { label: "GitHub", handle: `@${PROFILE.handle}`, url: PROFILE.github, desc: "Source code, repos & contributions" },
+  { label: "Website", handle: "diegoletelierdev.vercel.app", url: PROFILE.website, desc: "Personal portfolio & interactive projects" },
+  { label: "LinkedIn", handle: "diegoletelier", url: PROFILE.linkedin, desc: "Professional network & career updates" },
+  { label: "Email", handle: PROFILE.email, url: `mailto:${PROFILE.email}`, desc: "Direct inquiries, freelance & opportunities" },
 ]
 
 export function ContactScreen() {
@@ -16,10 +16,10 @@ export function ContactScreen() {
   const [selectedIdx, setSelectedIdx] = useState(0)
 
   useKeyboard((key) => {
-    if (key.name === "up") {
+    if (key.name === "up" || key.name === "k") {
       setSelectedIdx((prev) => Math.max(0, prev - 1))
     }
-    if (key.name === "down") {
+    if (key.name === "down" || key.name === "j") {
       setSelectedIdx((prev) => Math.min(LINKS.length - 1, prev + 1))
     }
     if (key.name === "return" || key.name === "enter") {
@@ -32,29 +32,35 @@ export function ContactScreen() {
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
-      <text content={t`${bold(fg(theme.accent)("contact"))}`} />
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
+      <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <text content={t`${bold(fg(theme.accent)("GET IN TOUCH"))} ${dim("// contact & channels")}`} />
+        <text content={t`${dim("Press [ENTER] to open selected link")}`} />
+      </box>
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
 
       {/* Info Card */}
       <box
-        title=" Contact Details "
+        title=" Developer Profile "
         titleColor={theme.accent}
         style={{
           flexDirection: "column",
-          gap: 1,
+          gap: 0,
           padding: 1,
           borderStyle: "rounded",
           borderColor: theme.border,
         }}
       >
-        <text content={t`${bold(fg(theme.fg)(PROFILE.name))}  ${fg(theme.muted)("@" + PROFILE.handle)}`} />
-        <text content={t`${fg(theme.muted)(PROFILE.role)}`} />
-        <text content={t`${fg(theme.fg)(PROFILE.location)}`} />
+        <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <text content={t`  ${bold(fg(theme.fg)(PROFILE.name))}  ${fg(theme.muted)(`(@${PROFILE.handle})`)}`} />
+          <text content={t`${fg(theme.success)(PROFILE.status)}  `} />
+        </box>
+        <text content={t`  ${fg(theme.muted)("Role:")}     ${fg(theme.fg)(PROFILE.role)}`} />
+        <text content={t`  ${fg(theme.muted)("Location:")} ${fg(theme.fg)(PROFILE.location)}`} />
       </box>
 
       {/* Interactive Links Card */}
       <box
-        title=" Connect / Links "
+        title=" Direct Links & Socials "
         titleColor={theme.accent}
         style={{
           flexDirection: "column",
@@ -62,27 +68,31 @@ export function ContactScreen() {
           padding: 1,
           borderStyle: "rounded",
           borderColor: theme.border,
-          marginTop: 1,
           flexGrow: 1,
         }}
       >
         {LINKS.map((link, idx) => {
           const isActive = idx === selectedIdx
           return (
-            <text
-              key={link.label}
-              content={
-                isActive
-                  ? t`${fg(theme.accent)("▶")} ${bold(fg(theme.fg)(link.label.padEnd(10)))} ${underline(fg(theme.link)(link.url))}`
-                  : t`  ${fg(theme.muted)(link.label.padEnd(10))} ${fg(theme.muted)(link.url)}`
-              }
-            />
+            <box key={link.label} style={{ flexDirection: "column", gap: 0 }}>
+              <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <text
+                  content={
+                    isActive
+                      ? t`  ${fg(theme.accent)("▶")} ${bold(fg(theme.fg)(link.label.padEnd(12)))} ${underline(fg(theme.link)(link.handle))}`
+                      : t`    ${fg(theme.muted)(link.label.padEnd(12))} ${fg(theme.fg)(link.handle)}`
+                  }
+                />
+                <text content={t`${dim(link.desc)}  `} />
+              </box>
+            </box>
           )
         })}
       </box>
 
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
-      <text content={t`  ${dim("↑↓ navigate")}  ${dim("[enter]")} ${fg(theme.accent)("open link")}  ${dim("q")} ${fg(theme.muted)("back")}`} />
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
+      <text content={t`  ${dim("Controls:")} ${bold(fg(theme.accent)("↑/↓ / J/K"))} ${dim("Navigate")}  │  ${bold(fg(theme.accent)("[ENTER]"))} ${dim("Open Link")}  │  ${bold(fg(theme.accent)("[Q]"))} ${dim("Back")}`} />
     </box>
   )
 }
+

@@ -14,9 +14,10 @@ function formatTime(secs: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
 }
 
-function progressBar(current: number, total: number, width: number = 30): string {
-  const filled = Math.round(((total - current) / total) * width)
-  return "█".repeat(filled) + "░".repeat(width - filled)
+function progressBar(current: number, total: number, width: number = 28): string {
+  const filled = Math.min(width, Math.max(0, Math.round(((total - current) / total) * width)))
+  const empty = Math.max(0, width - filled)
+  return "█".repeat(filled) + "░".repeat(empty)
 }
 
 export function PomodoroScreen() {
@@ -68,7 +69,6 @@ export function PomodoroScreen() {
       setTimeLeft(WORK_SECS)
     }
     if (key.name === "s") {
-      // Skip to break/work
       setRunning(false)
       if (state === "work") {
         setSessions((s) => s + 1)
@@ -82,7 +82,7 @@ export function PomodoroScreen() {
   })
 
   const stateColor = state === "work" ? theme.error : state === "break" ? theme.success : theme.muted
-  const stateLabel = state === "work" ? "🍅 WORK SESSION" : state === "break" ? "☕ BREAK TIME" : "⏸ IDLE"
+  const stateLabel = state === "work" ? "🍅 FOCUS SESSION" : state === "break" ? "☕ BREAK TIME" : "⏸ READY TO FOCUS"
   const bar = progressBar(timeLeft, total)
 
   const totalHours = Math.floor(totalWorkSecs / 3600)
@@ -90,21 +90,24 @@ export function PomodoroScreen() {
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
-      <text content={t`${bold(fg(theme.accent)("pomodoro"))} ${dim("// focus timer")}`} />
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
+      <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <text content={t`${bold(fg(theme.accent)("POMODORO FOCUS TIMER"))} ${dim("// deep work intervals")}`} />
+        <text content={t`${fg(theme.muted)("Sessions Today:")} ${bold(fg(theme.success)(String(sessions)))}`} />
+      </box>
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
 
       {/* Main timer display */}
       <box style={{ flexGrow: 1, flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
         <box
-          title=" Timer "
+          title=" Focus Session "
           titleColor={stateColor}
           style={{
             flexDirection: "column",
-            padding: 2,
-            borderStyle: "double",
+            padding: 1,
+            borderStyle: "rounded",
             borderColor: stateColor,
             alignItems: "center",
-            width: 40,
+            width: 44,
           }}
         >
           <text content={t`${bold(fg(stateColor)(stateLabel))}`} />
@@ -114,21 +117,15 @@ export function PomodoroScreen() {
           <text content={t`  ${fg(stateColor)(bar)}`} />
           <text content={t``} />
 
-          {state === "idle" && (
-            <text content={t`${dim("Press [ENTER] to start")}`} />
-          )}
-          {state !== "idle" && running && (
-            <text content={t`${fg(theme.muted)("Press [ENTER] to pause")}`} />
-          )}
-          {state !== "idle" && !running && (
-            <text content={t`${fg(theme.warn)("Press [ENTER] to resume")}`} />
-          )}
+          {state === "idle" && <text content={t`${dim("Press [ENTER] or [SPACE] to start")}`} />}
+          {state !== "idle" && running && <text content={t`${fg(theme.muted)("Press [SPACE] to pause")}`} />}
+          {state !== "idle" && !running && <text content={t`${fg(theme.warn)("Press [SPACE] to resume")}`} />}
         </box>
       </box>
 
       {/* Session stats */}
       <box
-        title=" Session Stats "
+        title=" Daily Focus Metrics "
         titleColor={theme.accent}
         style={{
           flexDirection: "row",
@@ -138,12 +135,13 @@ export function PomodoroScreen() {
           borderColor: theme.border,
         }}
       >
-        <text content={t`  ${fg(theme.muted)("sessions completed:")} ${bold(fg(theme.fg)(String(sessions)))}`} />
-        <text content={t`  ${fg(theme.muted)("total focus time:")} ${bold(fg(theme.accent)(`${totalHours}h ${totalMins}m`))}`} />
+        <text content={t`  ${fg(theme.muted)("Sessions Completed:")} ${bold(fg(theme.fg)(String(sessions)))}`} />
+        <text content={t`  ${fg(theme.muted)("Total Focus Time:")} ${bold(fg(theme.accent)(`${totalHours}h ${totalMins}m`))}  `} />
       </box>
 
-      <text content={t`${dim("────────────────────────────────────────────────────────")}`} />
-      <text content={t`  ${dim("[enter]")} ${fg(theme.accent)("start/pause")}  ${dim("[s]")} ${fg(theme.muted)("skip")}  ${dim("[r]")} ${fg(theme.muted)("reset")}  ${dim("q")} ${fg(theme.muted)("back")}`} />
+      <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
+      <text content={t`  ${dim("Controls:")} ${bold(fg(theme.accent)("[ENTER / SPACE]"))} ${dim("Start/Pause")}  │  ${bold(fg(theme.accent)("[S]"))} ${dim("Skip")}  │  ${bold(fg(theme.accent)("[R]"))} ${dim("Reset")}  │  ${bold(fg(theme.accent)("[Q]"))} ${dim("Back")}`} />
     </box>
   )
 }
+

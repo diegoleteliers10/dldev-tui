@@ -1,9 +1,29 @@
 {
   "name": "dlsdev",
-  "module": "index.tsx",
   "version": "1.2.0",
+  "description": "Interactive terminal user interface portfolio for Diego Letelier",
+  "module": "index.tsx",
   "type": "module",
   "private": false,
+  "license": "MIT",
+  "author": "Diego Letelier <diegoleteliers10@gmail.com> (https://diegoletelierdev.vercel.app/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diegoleteliers10/dldev-tui.git"
+  },
+  "homepage": "https://github.com/diegoleteliers10/dldev-tui#readme",
+  "bugs": {
+    "url": "https://github.com/diegoleteliers10/dldev-tui/issues"
+  },
+  "keywords": [
+    "tui",
+    "opentui",
+    "terminal",
+    "portfolio",
+    "react",
+    "cli",
+    "developer-portfolio"
+  ],
   "bin": {
     "dlsdev": "bin.cjs"
   },
