@@ -186,10 +186,11 @@ function langBar(count: number, max: number, filledColor: string, bgColor: strin
   return t`${fg(filledColor)("█".repeat(filled))}${fg(bgColor)("░".repeat(empty))}`
 }
 
-export function StatsScreen({ width }: { width: number }) {
+export function StatsScreen({ width, height }: { width: number; height?: number }) {
   const theme = useTheme()
   const stats = useGitHubStats()
   const isNarrow = width < 85
+  const isShort = (height || 40) < 26
 
   if (!stats) {
     return (
@@ -202,7 +203,9 @@ export function StatsScreen({ width }: { width: number }) {
 
   const maxLang = Math.max(...stats.topLangs.map(([, c]) => c), 1)
   const totalLangRepos = stats.topLangs.reduce((acc, [, c]) => acc + c, 0) || 1
-  const barWidth = isNarrow ? 10 : 16
+  const barWidth = isNarrow ? 8 : 14
+  const visibleLangs = isShort ? stats.topLangs.slice(0, 3) : stats.topLangs
+  const visibleEvents = isShort ? stats.recentActivity.slice(0, 2) : stats.recentActivity
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
@@ -257,7 +260,7 @@ export function StatsScreen({ width }: { width: number }) {
             borderColor: theme.border,
           }}
         >
-          {stats.topLangs.map(([lang, count]) => {
+          {visibleLangs.map(([lang, count]) => {
             const color = getLangColor(lang, theme)
             const pct = Math.round((count / totalLangRepos) * 100)
 
@@ -273,7 +276,7 @@ export function StatsScreen({ width }: { width: number }) {
       </box>
 
       {/* Recent Activity Box */}
-      {stats.recentActivity.length > 0 && (
+      {visibleEvents.length > 0 && (
         <box
           title=" Recent GitHub Events "
           titleColor={theme.accent}
@@ -286,7 +289,7 @@ export function StatsScreen({ width }: { width: number }) {
             flexGrow: 1,
           }}
         >
-          {stats.recentActivity.map((activity, i) => (
+          {visibleEvents.map((activity, i) => (
             <box key={i} style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <text content={activity.text} />
               <text content={t`${fg(theme.muted)(activity.time)}  `} />
@@ -294,6 +297,7 @@ export function StatsScreen({ width }: { width: number }) {
           ))}
         </box>
       )}
+
 
       <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
       <text content={t`  ${dim("Quick Keys:")} ${bold(fg(theme.accent)("1-0"))} ${dim("Screens")}  │  ${bold(fg(theme.accent)("[T]"))} ${dim("Theme")}  │  ${bold(fg(theme.accent)("[Q]"))} ${dim("Welcome Screen")}  │  ${bold(fg(theme.error)("[ESC]"))} ${dim("Exit")}`} />

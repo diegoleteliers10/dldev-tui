@@ -84,7 +84,10 @@ function getSystemInfo(): SystemInfo {
   }
 }
 
-export function SystemScreen() {
+export function SystemScreen({ width, height }: { width?: number; height?: number }) {
+  const currentWidth = width || 80
+  const isNarrow = currentWidth < 85
+  const isShort = (height || 40) < 24
   const theme = useTheme()
   const [info, setInfo] = useState<SystemInfo>(getSystemInfo())
 
@@ -104,7 +107,7 @@ export function SystemScreen() {
       <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
 
       {/* Main system layout */}
-      <box style={{ flexDirection: "row", gap: 1, flexGrow: 1 }}>
+      <box style={{ flexDirection: isNarrow ? "column" : "row", gap: 1, flexGrow: 1 }}>
         {/* Left Column: OS & Platform */}
         <box
           title=" OS & Platform "
@@ -119,7 +122,7 @@ export function SystemScreen() {
           }}
         >
           <text content={t`  ${fg(theme.muted)("Platform:")}  ${bold(fg(theme.fg)(info.platform))}`} />
-          <text content={t`  ${fg(theme.muted)("Release:")}   ${fg(theme.fg)(info.release.slice(0, 18))}`} />
+          <text content={t`  ${fg(theme.muted)("Release:")}   ${fg(theme.fg)(info.release.slice(0, 16))}`} />
           <text content={t`  ${fg(theme.muted)("Arch:")}      ${fg(theme.fg)(info.arch)}`} />
           <text content={t`  ${fg(theme.muted)("Uptime:")}    ${fg(theme.success)(formatUptime(info.uptimeSec))}`} />
           <text content={t`  ${fg(theme.muted)("IP Addr:")}   ${fg(theme.link)(info.ipAddress)}`} />
@@ -138,16 +141,17 @@ export function SystemScreen() {
             borderColor: theme.border,
           }}
         >
-          <text content={t`  ${fg(theme.muted)("CPU:")}     ${bold(fg(theme.fg)(info.cpuModel.slice(0, 36)))}`} />
+          <text content={t`  ${fg(theme.muted)("CPU:")}     ${bold(fg(theme.fg)(info.cpuModel.slice(0, isNarrow ? 24 : 36)))}`} />
           <text content={t`  ${fg(theme.muted)("Cores:")}   ${fg(theme.fg)(String(info.cpuCores))} threads`} />
           <text content={t`  ${fg(theme.muted)("Load Avg:")} ${fg(theme.fg)(info.loadAvg.map((l) => l.toFixed(2)).join("  "))}`} />
-          <text content={t``} />
+          {!isShort && <text content={t``} />}
           <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <text content={t`  ${fg(theme.muted)("RAM:")} ${fg(theme.accent)(`${info.memPercentage.toFixed(1)}%`)} ${dim(`(${info.usedMemGB.toFixed(1)}GB / ${info.totalMemGB.toFixed(1)}GB)`)}`} />
-            <text content={t`${fg(theme.accent)(makeProgressBar(info.memPercentage, 18))}  `} />
+            <text content={t`  ${fg(theme.muted)("RAM:")} ${fg(theme.accent)(`${info.memPercentage.toFixed(1)}%`)} ${dim(`(${info.usedMemGB.toFixed(1)}GB/${info.totalMemGB.toFixed(1)}GB)`)}`} />
+            <text content={t`${fg(theme.accent)(makeProgressBar(info.memPercentage, isNarrow ? 10 : 16))}  `} />
           </box>
         </box>
       </box>
+
 
       {/* Runtimes & Dev Info */}
       <box

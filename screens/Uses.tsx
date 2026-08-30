@@ -36,7 +36,10 @@ const CATEGORIES = [
   { id: "tools", label: "Dev Tools & Stack", icon: "🛠️" },
 ]
 
-export function UsesScreen() {
+export function UsesScreen({ width, height }: { width?: number; height?: number }) {
+  const currentWidth = width || 80
+  const isNarrow = currentWidth < 85
+  const isShort = (height || 40) < 24
   const theme = useTheme()
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -73,7 +76,7 @@ export function UsesScreen() {
           title=" Setup Group "
           titleColor={theme.accent}
           style={{
-            width: 22,
+            width: isNarrow ? 14 : 22,
             flexDirection: "column",
             gap: 0,
             padding: 1,
@@ -88,13 +91,14 @@ export function UsesScreen() {
                 key={cat.id}
                 content={
                   isActive
-                    ? t`${fg(theme.accent)("▶")} ${bold(fg(theme.fg)(cat.label))}`
-                    : t`  ${fg(theme.muted)(cat.label)}`
+                    ? t`${fg(theme.accent)("▶")} ${bold(fg(theme.fg)(isNarrow ? cat.label.slice(0, 8) : cat.label))}`
+                    : t`  ${fg(theme.muted)(isNarrow ? cat.label.slice(0, 8) : cat.label)}`
                 }
               />
             )
           })}
         </box>
+
 
         {/* Right: Category Items */}
         <box

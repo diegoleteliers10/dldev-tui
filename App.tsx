@@ -122,14 +122,15 @@ export default function App() {
   })
 
   // Responsive Welcome Art decision
-  const showFullArt = terminalWidth >= 76 && terminalHeight >= 38
-  const showBigName = terminalWidth >= 54 && terminalHeight >= 26
+  const isLarge = terminalWidth >= 80 && terminalHeight >= 38
+  const isMedium = terminalWidth >= 60 && terminalHeight >= 24
+  const welcomeBoxWidth = Math.min(50, Math.max(32, terminalWidth - 4))
 
   return (
     <ThemeContext.Provider value={theme}>
       {phase === "welcome" && (
         <box style={{ flexDirection: "column", width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}>
-          {showFullArt && (
+          {isLarge && (
             <box style={{ flexDirection: "column", alignItems: "center", marginBottom: 1 }}>
               {FULL_SPLASH_ART.map((line, i) => (
                 <text key={i} content={t`${fg(theme.accent)(line)}`} />
@@ -137,25 +138,35 @@ export default function App() {
             </box>
           )}
 
-          {showBigName ? (
+          {isMedium ? (
             <box style={{ flexDirection: "column", alignItems: "center", marginBottom: 1 }}>
               {BIG_NAME.map((line, i) => (
                 <text key={`name-${i}`} content={t`${bold(fg(theme.accent)(line))}`} />
               ))}
+              <text content={t`${dim(`// ${PROFILE.title} · ${PROFILE.location}`)}`} />
             </box>
           ) : (
             <box style={{ flexDirection: "column", alignItems: "center", marginBottom: 1 }}>
-              <text content={t`╔════════════════════════════════════════════╗`} />
-              <text content={t`║   ${bold(fg(theme.accent)("D I E G O   L E T E L I E R"))}            ║`} />
-              <text content={t`║   ${fg(theme.muted)(PROFILE.title)}   ║`} />
-              <text content={t`╚════════════════════════════════════════════╝`} />
+              <text content={t`${bold(fg(theme.accent)(`◆ ${PROFILE.name.toUpperCase()} ◆`))}`} />
+              <text content={t`${dim(PROFILE.role)}`} />
             </box>
           )}
 
-          <text content={t`${fg(theme.muted)(PROFILE.status)}`} />
+          <text content={t`${fg(theme.success)(PROFILE.status)}`} />
           <text content={t``} />
 
-          <box style={{ borderStyle: "rounded", borderColor: theme.border, padding: 1, flexDirection: "column", width: Math.min(54, terminalWidth - 4), alignItems: "center" }}>
+          <box
+            title=" Welcome Menu "
+            titleColor={theme.accent}
+            style={{
+              borderStyle: "rounded",
+              borderColor: theme.border,
+              padding: 1,
+              flexDirection: "column",
+              width: welcomeBoxWidth,
+              alignItems: "center",
+            }}
+          >
             <text content={t`Press ${bold(fg(theme.accent)("[ENTER]"))} to view Portfolio`} />
             <text content={t`Press ${bold(fg(theme.success)("[G]"))} to play Dev Trivia Quiz`} />
             <text content={t`Press ${bold(fg(theme.link)("[T]"))} to cycle Theme ${dim(`(${themeName})`)}`} />
@@ -165,23 +176,23 @@ export default function App() {
       )}
 
       {phase === "trivia" && (
-        <TriviaScreen onClose={() => setPhase("welcome")} />
+        <TriviaScreen width={terminalWidth} height={terminalHeight} onClose={() => setPhase("welcome")} />
       )}
 
       {phase === "portfolio" && (
         <box style={{ flexDirection: "row", width: "100%", height: "100%" }}>
-          <Sidebar active={screen} terminalWidth={terminalWidth} onNavigate={setScreen} />
+          <Sidebar active={screen} terminalWidth={terminalWidth} terminalHeight={terminalHeight} onNavigate={setScreen} />
           <box style={{ flexGrow: 1, flexDirection: "column", padding: 1, borderStyle: "rounded", borderColor: theme.border, marginLeft: 1 }}>
-            {screen === "home" && <HomeScreen width={terminalWidth} />}
-            {screen === "projects" && <ProjectsScreen width={terminalWidth} />}
-            {screen === "about" && <AboutScreen width={terminalWidth} />}
-            {screen === "contact" && <ContactScreen />}
-            {screen === "stats" && <StatsScreen width={terminalWidth} />}
-            {screen === "heatmap" && <HeatmapScreen width={terminalWidth} />}
-            {screen === "now" && <NowScreen />}
-            {screen === "uses" && <UsesScreen />}
-            {screen === "pomodoro" && <PomodoroScreen />}
-            {screen === "system" && <SystemScreen />}
+            {screen === "home" && <HomeScreen width={terminalWidth} height={terminalHeight} />}
+            {screen === "projects" && <ProjectsScreen width={terminalWidth} height={terminalHeight} />}
+            {screen === "about" && <AboutScreen width={terminalWidth} height={terminalHeight} />}
+            {screen === "contact" && <ContactScreen width={terminalWidth} height={terminalHeight} />}
+            {screen === "stats" && <StatsScreen width={terminalWidth} height={terminalHeight} />}
+            {screen === "heatmap" && <HeatmapScreen width={terminalWidth} height={terminalHeight} />}
+            {screen === "now" && <NowScreen width={terminalWidth} height={terminalHeight} />}
+            {screen === "uses" && <UsesScreen width={terminalWidth} height={terminalHeight} />}
+            {screen === "pomodoro" && <PomodoroScreen width={terminalWidth} height={terminalHeight} />}
+            {screen === "system" && <SystemScreen width={terminalWidth} height={terminalHeight} />}
           </box>
         </box>
       )}

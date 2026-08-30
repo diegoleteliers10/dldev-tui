@@ -17,13 +17,17 @@ const ITEMS: { key: Screen; label: string; num: string; icon: string }[] = [
 interface SidebarProps {
   active: Screen
   terminalWidth: number
+  terminalHeight?: number
   onNavigate: (s: Screen) => void
 }
 
-export function Sidebar({ active, terminalWidth }: SidebarProps) {
+export function Sidebar({ active, terminalWidth, terminalHeight }: SidebarProps) {
   const theme = useTheme()
-  const isCompact = terminalWidth < 80
-  const sidebarWidth = isCompact ? 8 : 20
+  const isMini = terminalWidth < 65
+  const isCompact = terminalWidth >= 65 && terminalWidth < 90
+  const isShort = (terminalHeight || 40) < 22
+
+  const sidebarWidth = isMini ? 6 : isCompact ? 8 : 20
 
   return (
     <box
@@ -31,27 +35,42 @@ export function Sidebar({ active, terminalWidth }: SidebarProps) {
         width: sidebarWidth,
         height: "100%",
         flexDirection: "column",
-        padding: 1,
+        padding: isMini ? 0 : 1,
         borderStyle: "rounded",
         borderColor: theme.border,
       }}
     >
-      {!isCompact ? (
+      {!isMini && !isCompact && !isShort && (
         <>
           <text content={t`${bold(fg(theme.accent)("diego"))}`} />
           <text content={t`${fg(theme.muted)("letelier")}`} />
           <text content={t`${dim("──────────────")}`} />
         </>
-      ) : (
+      )}
+
+      {!isMini && isCompact && !isShort && (
         <>
           <text content={t`${bold(fg(theme.accent)("DL"))}`} />
           <text content={t`${dim("────")}`} />
         </>
       )}
 
-      <box style={{ flexDirection: "column", gap: 0, flexGrow: 1 }}>
+      <box style={{ flexDirection: "column", gap: 0, flexGrow: 1, justifyContent: "space-between" }}>
         {ITEMS.map((item) => {
           const isActive = item.key === active
+          if (isMini) {
+            return (
+              <text
+                key={item.key}
+                content={
+                  isActive
+                    ? t`${bold(fg(theme.accent)(`▶${item.num}`))}`
+                    : t` ${fg(theme.muted)(item.num)}`
+                }
+              />
+            )
+          }
+
           if (isCompact) {
             return (
               <text
@@ -78,19 +97,24 @@ export function Sidebar({ active, terminalWidth }: SidebarProps) {
         })}
       </box>
 
-      <text content={t`${dim(isCompact ? "────" : "──────────────")}`} />
-      {!isCompact ? (
+      {!isShort && (
         <>
-          <text content={t`${fg(theme.accent)("t")}${dim(" theme")}`} />
-          <text content={t`${fg(theme.muted)("q")}${dim(" welcome")}`} />
-        </>
-      ) : (
-        <>
-          <text content={t`${fg(theme.accent)("t")}`} />
-          <text content={t`${fg(theme.muted)("q")}`} />
+          <text content={t`${dim(isMini ? "──" : isCompact ? "────" : "──────────────")}`} />
+          {!isMini && !isCompact ? (
+            <>
+              <text content={t`${fg(theme.accent)("t")}${dim(" theme")}`} />
+              <text content={t`${fg(theme.muted)("q")}${dim(" welcome")}`} />
+            </>
+          ) : (
+            <>
+              <text content={t`${fg(theme.accent)("t")}`} />
+              <text content={t`${fg(theme.muted)("q")}`} />
+            </>
+          )}
         </>
       )}
     </box>
   )
 }
+
 

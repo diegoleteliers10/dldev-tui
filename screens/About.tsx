@@ -7,10 +7,15 @@ function skillBar(level: number, width: number = 14): string {
   return "█".repeat(filled) + "░".repeat(empty)
 }
 
-export function AboutScreen({ width }: { width: number }) {
+export function AboutScreen({ width, height }: { width: number; height?: number }) {
   const theme = useTheme()
   const sortedSkills = Object.entries(SKILLS).sort((a, b) => b[1] - a[1])
   const isNarrow = width < 85
+  const isShort = (height || 40) < 28
+
+  const visibleExperiences = isShort ? EXPERIENCES.slice(0, 2) : EXPERIENCES
+  const visibleSkills = isShort ? sortedSkills.slice(0, 5) : sortedSkills.slice(0, 8)
+  const barWidth = isNarrow ? 8 : 12
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
@@ -37,10 +42,12 @@ export function AboutScreen({ width }: { width: number }) {
           <text content={t`${bold(fg(theme.accent)(PROFILE.title))}  `} />
         </box>
         <text content={t`  ${fg(theme.fg)(PROFILE.bio)}`} />
-        <box style={{ flexDirection: isNarrow ? "column" : "row", gap: isNarrow ? 0 : 3, marginTop: 1 }}>
-          <text content={t`  ${fg(theme.muted)("Education:")} ${fg(theme.fg)("Computer Science @ UDD + SoyHenry")}`} />
-          <text content={t`  ${fg(theme.muted)("Website:")}   ${underline(fg(theme.link)(PROFILE.website))}`} />
-        </box>
+        {!isShort && (
+          <box style={{ flexDirection: isNarrow ? "column" : "row", gap: isNarrow ? 0 : 3, marginTop: 1 }}>
+            <text content={t`  ${fg(theme.muted)("Education:")} ${fg(theme.fg)("Computer Science @ UDD + SoyHenry")}`} />
+            <text content={t`  ${fg(theme.muted)("Website:")}   ${underline(fg(theme.link)(PROFILE.website))}`} />
+          </box>
+        )}
       </box>
 
       {/* Experience & Skills Columns */}
@@ -51,21 +58,20 @@ export function AboutScreen({ width }: { width: number }) {
           titleColor={theme.accent}
           style={{
             flexDirection: "column",
-            gap: 1,
+            gap: 0,
             flexGrow: 2,
             padding: 1,
             borderStyle: "rounded",
             borderColor: theme.border,
           }}
         >
-          {EXPERIENCES.map((exp) => (
-            <box key={exp.organization} style={{ flexDirection: "column", gap: 0 }}>
+          {visibleExperiences.map((exp) => (
+            <box key={exp.organization} style={{ flexDirection: "column", gap: 0, marginBottom: isShort ? 0 : 1 }}>
               <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
                 <text content={t`  ${bold(fg(theme.accent)(exp.organization))} ${dim(`— ${exp.title}`)}`} />
                 <text content={t`${fg(theme.muted)(exp.period)}  `} />
               </box>
               <text content={t`    ${fg(theme.fg)(exp.description)}`} />
-              <text content={t`    ${fg(theme.muted)(exp.tags.map((tg) => `#${tg}`).join(" "))}`} />
             </box>
           ))}
         </box>
@@ -83,10 +89,10 @@ export function AboutScreen({ width }: { width: number }) {
             borderColor: theme.border,
           }}
         >
-          {sortedSkills.slice(0, 8).map(([skill, level]) => (
+          {visibleSkills.map(([skill, level]) => (
             <box key={skill} style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <text content={t`  ${fg(theme.fg)(skill.padEnd(14))}`} />
-              <text content={t`${fg(theme.accent)(skillBar(level, 12))} ${fg(theme.muted)(`${level}%`)}  `} />
+              <text content={t`  ${fg(theme.fg)(skill.padEnd(12))}`} />
+              <text content={t`${fg(theme.accent)(skillBar(level, barWidth))} ${fg(theme.muted)(`${level}%`)}  `} />
             </box>
           ))}
         </box>
@@ -97,4 +103,5 @@ export function AboutScreen({ width }: { width: number }) {
     </box>
   )
 }
+
 

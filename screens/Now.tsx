@@ -35,7 +35,10 @@ const CATEGORIES = [
   { id: "thinking", label: "Thinking About", icon: "💭" },
 ]
 
-export function NowScreen() {
+export function NowScreen({ width, height }: { width?: number; height?: number }) {
+  const currentWidth = width || 80
+  const isNarrow = currentWidth < 85
+  const isShort = (height || 40) < 24
   const theme = useTheme()
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -64,7 +67,7 @@ export function NowScreen() {
           title=" Focus Area "
           titleColor={theme.accent}
           style={{
-            width: 20,
+            width: isNarrow ? 14 : 20,
             flexDirection: "column",
             gap: 0,
             padding: 1,
@@ -79,13 +82,14 @@ export function NowScreen() {
                 key={cat.id}
                 content={
                   isActive
-                    ? t`${fg(theme.accent)("▶")} ${bold(fg(theme.fg)(cat.label))}`
-                    : t`  ${fg(theme.muted)(cat.label)}`
+                    ? t`${fg(theme.accent)("▶")} ${bold(fg(theme.fg)(isNarrow ? cat.label.slice(0, 8) : cat.label))}`
+                    : t`  ${fg(theme.muted)(isNarrow ? cat.label.slice(0, 8) : cat.label)}`
                 }
               />
             )
           })}
         </box>
+
 
         {/* Right: Selected Category Details */}
         <box

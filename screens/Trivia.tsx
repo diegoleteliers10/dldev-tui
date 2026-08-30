@@ -80,10 +80,12 @@ const QUESTIONS: Question[] = [
 ]
 
 interface TriviaProps {
+  width?: number
+  height?: number
   onClose: () => void
 }
 
-export function TriviaScreen({ onClose }: TriviaProps) {
+export function TriviaScreen({ width, onClose }: TriviaProps) {
   const theme = useTheme()
   const [step, setStep] = useState<"intro" | "question" | "feedback" | "result">("intro")
   const [currentIdx, setCurrentIdx] = useState(0)
@@ -92,6 +94,7 @@ export function TriviaScreen({ onClose }: TriviaProps) {
   const [isCorrect, setIsCorrect] = useState(false)
 
   const activeQ = (QUESTIONS[currentIdx] ?? QUESTIONS[0]) as Question
+  const boxWidth = Math.min(64, Math.max(30, (width || 80) - 6))
 
   useKeyboard((key) => {
     if (step === "intro") {
@@ -120,7 +123,6 @@ export function TriviaScreen({ onClose }: TriviaProps) {
     }
 
     if (step === "feedback") {
-      // Press any key to advance
       if (currentIdx + 1 < QUESTIONS.length) {
         setCurrentIdx((idx) => idx + 1)
         setSelected("")
@@ -154,7 +156,7 @@ export function TriviaScreen({ onClose }: TriviaProps) {
   if (step === "intro") {
     return (
       <box style={{ flexDirection: "column", width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}>
-        <box style={{ borderStyle: "rounded", borderColor: theme.accent, padding: 1, flexDirection: "column", width: 60, alignItems: "center" }}>
+        <box style={{ borderStyle: "rounded", borderColor: theme.accent, padding: 1, flexDirection: "column", width: boxWidth, alignItems: "center" }}>
           <text content={t`${bold(fg(theme.accent)("⚡ DEVELOPER TRIVIA QUIZ ⚡"))}`} />
           <text content={t``} />
           <text content={t`${fg(theme.fg)("Test your technical knowledge!")}`} />
@@ -172,7 +174,7 @@ export function TriviaScreen({ onClose }: TriviaProps) {
     const finalRank = getRank(score)
     return (
       <box style={{ flexDirection: "column", width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}>
-        <box style={{ borderStyle: "double", borderColor: theme.success, padding: 1, flexDirection: "column", width: 60, alignItems: "center" }}>
+        <box style={{ borderStyle: "double", borderColor: theme.success, padding: 1, flexDirection: "column", width: boxWidth, alignItems: "center" }}>
           <text content={t`${bold(fg(theme.success)("🎉 QUIZ COMPLETED! 🎉"))}`} />
           <text content={t``} />
           <text content={t`Your score: ${bold(fg(theme.accent)(`${score} / ${QUESTIONS.length}`))}`} />
@@ -190,7 +192,7 @@ export function TriviaScreen({ onClose }: TriviaProps) {
   // Active question or feedback
   return (
     <box style={{ flexDirection: "column", width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}>
-      <box style={{ borderStyle: "rounded", borderColor: theme.border, padding: 1, flexDirection: "column", width: 66 }}>
+      <box style={{ borderStyle: "rounded", borderColor: theme.border, padding: 1, flexDirection: "column", width: boxWidth }}>
         {/* Header */}
         <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <text content={t`${bold(fg(theme.accent)(`Question ${currentIdx + 1} of ${QUESTIONS.length}`))}`} />
@@ -198,6 +200,7 @@ export function TriviaScreen({ onClose }: TriviaProps) {
         </box>
         <text content={t`${dim("──────────────────────────────────────────────────────────────")}`} />
         <text content={t``} />
+
 
         {/* Question Text */}
         <text content={t`${bold(fg(theme.fg)(activeQ.question))}`} />

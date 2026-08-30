@@ -20,7 +20,9 @@ function progressBar(current: number, total: number, width: number = 28): string
   return "█".repeat(filled) + "░".repeat(empty)
 }
 
-export function PomodoroScreen() {
+export function PomodoroScreen({ width, height }: { width?: number; height?: number }) {
+  const currentWidth = width || 80
+  const isShort = (height || 40) < 24
   const theme = useTheme()
   const [state, setState] = useState<PomodoroState>("idle")
   const [timeLeft, setTimeLeft] = useState(WORK_SECS)
@@ -83,7 +85,8 @@ export function PomodoroScreen() {
 
   const stateColor = state === "work" ? theme.error : state === "break" ? theme.success : theme.muted
   const stateLabel = state === "work" ? "🍅 FOCUS SESSION" : state === "break" ? "☕ BREAK TIME" : "⏸ READY TO FOCUS"
-  const bar = progressBar(timeLeft, total)
+  const timerBoxWidth = Math.min(44, Math.max(28, currentWidth - 26))
+  const bar = progressBar(timeLeft, total, Math.max(14, timerBoxWidth - 14))
 
   const totalHours = Math.floor(totalWorkSecs / 3600)
   const totalMins = Math.floor((totalWorkSecs % 3600) / 60)
@@ -103,25 +106,26 @@ export function PomodoroScreen() {
           titleColor={stateColor}
           style={{
             flexDirection: "column",
-            padding: 1,
+            padding: isShort ? 0 : 1,
             borderStyle: "rounded",
             borderColor: stateColor,
             alignItems: "center",
-            width: 44,
+            width: timerBoxWidth,
           }}
         >
           <text content={t`${bold(fg(stateColor)(stateLabel))}`} />
-          <text content={t``} />
+          {!isShort && <text content={t``} />}
           <text content={t`  ${bold(fg(theme.fg)(formatTime(timeLeft)))}`} />
-          <text content={t``} />
+          {!isShort && <text content={t``} />}
           <text content={t`  ${fg(stateColor)(bar)}`} />
-          <text content={t``} />
+          {!isShort && <text content={t``} />}
 
           {state === "idle" && <text content={t`${dim("Press [ENTER] or [SPACE] to start")}`} />}
           {state !== "idle" && running && <text content={t`${fg(theme.muted)("Press [SPACE] to pause")}`} />}
           {state !== "idle" && !running && <text content={t`${fg(theme.warn)("Press [SPACE] to resume")}`} />}
         </box>
       </box>
+
 
       {/* Session stats */}
       <box

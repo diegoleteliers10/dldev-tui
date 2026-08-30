@@ -168,8 +168,11 @@ function progressBar(value: number, max: number, width: number, color: string, b
   return t`${fg(color)("━".repeat(filled))}${fg(bgColor)("━".repeat(empty))}`
 }
 
-export function HeatmapScreen({ width }: { width?: number }) {
+export function HeatmapScreen({ width, height }: { width?: number; height?: number }) {
   const currentWidth = width || 80
+  const currentHeight = height || 40
+  const isNarrow = currentWidth < 85
+  const isShort = currentHeight < 26
   const theme = useTheme()
   const { grid, stats, loading } = useHeatmapData()
 
@@ -189,10 +192,10 @@ export function HeatmapScreen({ width }: { width?: number }) {
     if (chunk.length > 0) weeks.push(chunk)
   }
 
-  const sidebarW = currentWidth < 80 ? 10 : 22
+  const sidebarW = currentWidth < 65 ? 6 : currentWidth < 90 ? 10 : 22
   const labelW = 4
-  const availableForGrid = Math.max(20, currentWidth - sidebarW - 8 - labelW)
-  const maxWeeksFit = Math.min(52, Math.max(16, Math.floor(availableForGrid / 1)))
+  const availableForGrid = Math.max(16, currentWidth - sidebarW - 8 - labelW)
+  const maxWeeksFit = Math.min(52, Math.max(12, Math.floor(availableForGrid / 1)))
   const visibleWeeks = weeks.slice(-maxWeeksFit)
 
   const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""]
@@ -238,7 +241,6 @@ export function HeatmapScreen({ width }: { width?: number }) {
   }
 
   const monthRow = mergeTStrings(...monthParts)
-  const isNarrow = currentWidth < 85
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
@@ -268,7 +270,7 @@ export function HeatmapScreen({ width }: { width?: number }) {
       </box>
 
       {/* Stats row */}
-      {stats && (
+      {stats && !isShort && (
         <box style={{ flexDirection: isNarrow ? "column" : "row", gap: 1, flexGrow: 1 }}>
           <box
             title=" Current Streak "
@@ -316,6 +318,15 @@ export function HeatmapScreen({ width }: { width?: number }) {
           </box>
         </box>
       )}
+
+      {stats && isShort && (
+        <box style={{ flexDirection: "row", justifyContent: "space-between", padding: 1 }}>
+          <text content={t`  ${fg(theme.muted)("Current Streak:")} ${bold(fg(theme.success)(`${stats.currentStreak} days`))}`} />
+          <text content={t`${fg(theme.muted)("Longest:")} ${bold(fg(theme.accent)(`${stats.longestStreak} days`))}`} />
+          <text content={t`${fg(theme.muted)("Active:")} ${bold(fg(theme.link)(`${stats.activeDays}/365`))}  `} />
+        </box>
+      )}
+
 
       <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
       <text content={t`  ${dim("Quick Keys:")} ${bold(fg(theme.accent)("1-0"))} ${dim("Screens")}  │  ${bold(fg(theme.accent)("[T]"))} ${dim("Theme")}  │  ${bold(fg(theme.accent)("[Q]"))} ${dim("Welcome Screen")}  │  ${bold(fg(theme.error)("[ESC]"))} ${dim("Exit")}`} />

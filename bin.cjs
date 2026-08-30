@@ -1,25 +1,34 @@
 #!/usr/bin/env node
-const { spawn, execSync } = require("child_process");
 const path = require("path");
 
-let hasBun = false;
-try {
-  execSync("bun --version", { stdio: "ignore" });
-  hasBun = true;
-} catch {}
+const isAlreadyBun = typeof Bun !== "undefined" || Boolean(process.versions && process.versions.bun);
+const scriptPath = path.join(__dirname, "dist", "index.js");
 
-if (hasBun) {
-  const scriptPath = path.join(__dirname, "dist", "index.js");
-  const child = spawn("bun", [scriptPath, ...process.argv.slice(2)], {
-    stdio: "inherit"
-  });
-  child.on("exit", (code) => {
-    process.exit(code ?? 0);
-  });
+if (isAlreadyBun) {
+  // Directly execute in the current Bun process to preserve TTY, stdin, and resize signals
+  require(scriptPath);
 } else {
-  console.error("\n\x1b[31mError: dlsdev requires Bun to run (due to native OpenTUI FFI rendering).\x1b[0m");
-  console.error("Please install Bun on your system by running:");
-  console.error("  curl -fsSL https://bun.sh/install | bash");
-  console.error("\nAfter installing Bun, you can run this command again!");
-  process.exit(1);
+  const { spawnSync, spawn } = require("child_process");
+  let hasBun = false;
+  try {
+    const check = spawnSync("bun", ["--version"], { stdio: "ignore" });
+    hasBun = check.status === 0;
+  } catch {}
+
+  if (hasBun) {
+    const child = spawn("bun", [scriptPath, ...process.argv.slice(2)], {
+      stdio: "inherit",
+      env: process.env,
+    });
+    child.on("exit", (code) => {
+      process.exit(code ?? 0);
+    });
+  } else {
+    console.error("\n\x1b[31mError: dlsdev requires Bun to run (native OpenTUI terminal rendering).\x1b[0m");
+    console.error("Please install Bun by running:");
+    console.error("  curl -fsSL https://bun.sh/install | bash");
+    console.error("\nThen run 'npx dlsdev' or 'bunx dlsdev' again!");
+    process.exit(1);
+  }
 }
+

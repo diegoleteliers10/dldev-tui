@@ -11,7 +11,10 @@ const LINKS = [
   { label: "Email", handle: PROFILE.email, url: `mailto:${PROFILE.email}`, desc: "Direct inquiries, freelance & opportunities" },
 ]
 
-export function ContactScreen() {
+export function ContactScreen({ width, height }: { width?: number; height?: number }) {
+  const currentWidth = width || 80
+  const isNarrow = currentWidth < 85
+  const isShort = (height || 40) < 24
   const theme = useTheme()
   const [selectedIdx, setSelectedIdx] = useState(0)
 
@@ -52,7 +55,7 @@ export function ContactScreen() {
       >
         <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <text content={t`  ${bold(fg(theme.fg)(PROFILE.name))}  ${fg(theme.muted)(`(@${PROFILE.handle})`)}`} />
-          <text content={t`${fg(theme.success)(PROFILE.status)}  `} />
+          {!isShort && <text content={t`${fg(theme.success)(PROFILE.status)}  `} />}
         </box>
         <text content={t`  ${fg(theme.muted)("Role:")}     ${fg(theme.fg)(PROFILE.role)}`} />
         <text content={t`  ${fg(theme.muted)("Location:")} ${fg(theme.fg)(PROFILE.location)}`} />
@@ -64,7 +67,7 @@ export function ContactScreen() {
         titleColor={theme.accent}
         style={{
           flexDirection: "column",
-          gap: 1,
+          gap: isShort ? 0 : 1,
           padding: 1,
           borderStyle: "rounded",
           borderColor: theme.border,
@@ -73,22 +76,28 @@ export function ContactScreen() {
       >
         {LINKS.map((link, idx) => {
           const isActive = idx === selectedIdx
+          const maxDescLen = Math.max(10, currentWidth - 52)
+          const desc = isNarrow && link.desc.length > maxDescLen
+            ? link.desc.slice(0, Math.max(0, maxDescLen - 2)) + ".."
+            : link.desc
+
           return (
             <box key={link.label} style={{ flexDirection: "column", gap: 0 }}>
               <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
                 <text
                   content={
                     isActive
-                      ? t`  ${fg(theme.accent)("▶")} ${bold(fg(theme.fg)(link.label.padEnd(12)))} ${underline(fg(theme.link)(link.handle))}`
-                      : t`    ${fg(theme.muted)(link.label.padEnd(12))} ${fg(theme.fg)(link.handle)}`
+                      ? t`  ${fg(theme.accent)("▶")} ${bold(fg(theme.fg)(link.label.padEnd(10)))} ${underline(fg(theme.link)(link.handle))}`
+                      : t`    ${fg(theme.muted)(link.label.padEnd(10))} ${fg(theme.fg)(link.handle)}`
                   }
                 />
-                <text content={t`${dim(link.desc)}  `} />
+                {!isNarrow && <text content={t`${dim(desc)}  `} />}
               </box>
             </box>
           )
         })}
       </box>
+
 
       <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
       <text content={t`  ${dim("Controls:")} ${bold(fg(theme.accent)("↑/↓ / J/K"))} ${dim("Navigate")}  │  ${bold(fg(theme.accent)("[ENTER]"))} ${dim("Open Link")}  │  ${bold(fg(theme.accent)("[Q]"))} ${dim("Back")}`} />

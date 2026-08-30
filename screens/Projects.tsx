@@ -27,8 +27,9 @@ function filterRepos(repos: Repo[], filter: Filter): Repo[] {
   }
 }
 
-export function ProjectsScreen({ width }: { width?: number }) {
+export function ProjectsScreen({ width, height }: { width?: number; height?: number }) {
   const currentWidth = width || 80
+  const currentHeight = height || 40
   const theme = useTheme()
   const [filter, setFilter] = useState<Filter>("all")
   const [selected, setSelected] = useState(0)
@@ -78,13 +79,16 @@ export function ProjectsScreen({ width }: { width?: number }) {
     }
   })
 
-  const nameColWidth = Math.min(26, Math.max(16, Math.floor(currentWidth * 0.3)))
+  const nameColWidth = Math.min(22, Math.max(14, Math.floor(currentWidth * 0.28)))
+  const maxVisible = Math.max(3, Math.min(filtered.length, currentHeight - 15))
+  const startIdx = Math.max(0, Math.min(selected - Math.floor(maxVisible / 2), Math.max(0, filtered.length - maxVisible)))
+  const visibleSlice = filtered.slice(startIdx, startIdx + maxVisible)
 
   return (
     <box style={{ flexDirection: "column", gap: 1, padding: 1, flexGrow: 1 }}>
       <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <text content={t`${bold(fg(theme.accent)("PROJECTS"))} ${dim(`// ${filtered.length} repositories`)}`} />
-        <text content={t`${dim("Press [ENTER] to open URL")}`} />
+        <text content={t`${dim(`[${selected + 1}/${filtered.length}] Enter opens URL`)}`} />
       </box>
       <text content={t`${dim("────────────────────────────────────────────────────────────────────────")}`} />
 
@@ -104,8 +108,9 @@ export function ProjectsScreen({ width }: { width?: number }) {
 
       {/* Scrollable list container */}
       <box style={{ flexDirection: "column", gap: 0, flexGrow: 1 }}>
-        {filtered.map((repo, i) => {
-          const isActive = i === selected
+        {visibleSlice.map((repo, idx) => {
+          const absoluteIdx = startIdx + idx
+          const isActive = absoluteIdx === selected
           const starStr = repo.stars > 0 ? `${repo.stars}★` : "  "
           const displayName = repo.name.length > nameColWidth
             ? repo.name.slice(0, nameColWidth - 2) + ".."
@@ -151,4 +156,5 @@ export function ProjectsScreen({ width }: { width?: number }) {
     </box>
   )
 }
+
 
